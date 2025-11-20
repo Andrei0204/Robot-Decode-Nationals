@@ -1,0 +1,173 @@
+package org.firstinspires.ftc.teamcode.ROBOT.Modules;
+
+import static java.lang.Math.PI;
+
+import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.GoBildaPinpointDriver;
+import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.CoolMotor;
+import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Angles;
+import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Pose;
+import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Vector;
+import org.opencv.core.Mat;
+
+@Config
+public class Follower {
+    public GoBildaPinpointDriver odo; // Declare OpMode member for the Odometry Computer
+    Pose target = new Pose(0,0);
+    public Pose localization =new Pose(0,0);
+    CoolMotor frontLeft, frontRight, backLeft, backRight;
+    boolean frontLeftMotorReversed , frontRightMotorReversed=true, backLeftMotorReversed , backRightMotorReversed=true;
+    PIDController tpid = new PIDController(0,0,0), hpid = new PIDController(0,0,0);
+    public static double kp = 0.075, ki = 0.004, kd = 0.016     , kph = 1, kih = 0, kdh = 0.1;
+    Vector power = new Vector(0,0);
+    public static double velocityThreshold = 3.5 ;
+    public static double lateralmultiplier = 1 ;
+    public static double overallmulti = 1 ;
+
+    double headingPower = 0;
+
+    public Follower(HardwareMap hardwareMap,GoBildaPinpointDriver odo) {
+        lateralmultiplier=1;
+        this.odo=odo;
+        frontLeft = new CoolMotor(hardwareMap.get(DcMotorEx.class, "FL"), CoolMotor.RunMode.RUN, false);
+        frontRight = new CoolMotor(hardwareMap.get(DcMotorEx.class, "FR"), CoolMotor.RunMode.RUN, false);
+        backLeft = new CoolMotor(hardwareMap.get(DcMotorEx.class, "BL"), CoolMotor.RunMode.RUN, true);
+        backRight = new CoolMotor(hardwareMap.get(DcMotorEx.class, "BR"), CoolMotor.RunMode.RUN, true);
+    }
+    public Follower(HardwareMap hardwareMap) {
+        lateralmultiplier=1;
+        this.odo=null;
+        frontLeft = new CoolMotor(hardwareMap.get(DcMotorEx.class, "FL"), CoolMotor.RunMode.RUN, frontLeftMotorReversed);
+        frontRight = new CoolMotor(hardwareMap.get(DcMotorEx.class, "FR"), CoolMotor.RunMode.RUN, frontRightMotorReversed);
+        backLeft = new CoolMotor(hardwareMap.get(DcMotorEx.class, "BL"), CoolMotor.RunMode.RUN, backLeftMotorReversed);
+        backRight = new CoolMotor(hardwareMap.get(DcMotorEx.class, "BR"), CoolMotor.RunMode.RUN, backRightMotorReversed);
+    }
+    public void setTargetVectorAndSlows(Vector vector, double slowTurn, boolean slowBack, boolean slowForward) {
+
+        double yComp = 0, xComp = 0;
+
+        if (slowBack) yComp = -0.2;
+        if (slowForward) yComp = 0.2;
+
+        if (Math.abs(slowTurn) > 0.05) {
+            xComp = 0.4 * (slowTurn / Math.abs(slowTurn));
+        }
+
+        this.target = new Pose(xComp != 0 ? xComp : vector.getX() * 1.1, yComp != 0 ? yComp : vector.getY(), vector.getZ());
+    }
+
+    public boolean reachedTarget(double tolerance) {
+        return getDistance(localization, target) <= tolerance;// && stopped();
+    }
+
+    public boolean reachedTargetAndStopped(double tolerance) {
+        return reachedTarget(tolerance) && stopped();
+    }
+
+    public boolean reachedTargetOrStopped(double tolerance) {
+        return reachedTarget(tolerance) || stopped();
+    }
+
+    public boolean reachedHeading(double tolerance) {
+        double diff = (target.getHeading() - localization.getHeading()) % (2 * PI);
+        while (diff > Math.PI) diff -= Math.PI * 2.0;
+        while (diff < -Math.PI) diff += Math.PI * 2.0;
+        return Math.abs(diff) <= tolerance;
+    }
+    public boolean stopped() {
+        return (Math.abs(odo.getVelX(DistanceUnit.CM) )<= velocityThreshold &&Math.abs( odo.getVelY(DistanceUnit.CM)) <= velocityThreshold  ) && reachedTarget(7);
+    }
+    public boolean fullstop() {
+        return (Math.abs(odo.getVelX(DistanceUnit.CM) )<= 0.2 &&Math.abs( odo.getVelY(DistanceUnit.CM)) <= 0.2  ) && reachedTarget(4);
+    }
+    public void setTarget(Pose target) {
+        this.target = target;
+    }
+
+    public Pose getTarget() {
+        return target;
+    }
+
+    public void update() {
+        updatePath();
+        updateMotors();
+
+    }
+    public void updateteleop() {
+        double x = target.getX(),
+                y = target.getY(),
+                rot = target.getHeading();
+
+        frontLeft.setPower(y + x + rot);
+        frontRight.setPower(y - x - rot);
+        backLeft.setPower(y - x + rot);
+        backRight.setPower(y + x - rot);
+        frontLeft.update();
+        frontRight.update();
+        backLeft.update();
+        backRight.update();
+    }
+
+
+    public void updatePath() {
+        odo.update();
+        Pose2D odoplm  =odo.getPosition();
+        localization = new Pose(odoplm.getX(DistanceUnit.CM), odoplm.getY(DistanceUnit.CM), odoplm.getHeading(AngleUnit.RADIANS));
+        double xDiff = target.getX() - localization.getX();
+        double yDiff = target.getY() - localization.getY();
+        double angle = Math.atan2(yDiff, xDiff);
+        double movementError = Math.hypot(xDiff, yDiff);
+        tpid.setPID(kp, ki, kd);
+        hpid.setPID(kph, kih, kdh);
+        double translationalPower = tpid.calculate(-movementError, 0);
+        power = Vector.fromAngleAndMagnitude(angle, translationalPower);
+        power = Vector.rotateBy(power, localization.getHeading());
+        double max = Math.max(Math.abs(power.getX()), Math.abs(power.getY()));
+        if (max < 1)
+            max = 1;
+        power = new Vector(
+                power.getX() / max,
+                power.getY()*lateralmultiplier / max
+        );
+        double headingDiff = Angles.normalize(target.getHeading() - localization.getHeading());
+        headingPower = hpid.calculate(-headingDiff);
+        power.scaleBy(overallmulti);
+    }
+
+    public void updateMotors() {
+        double x =power.getX(),
+                y =power.getY() ,
+//        power.getY(),
+                rot = headingPower;
+
+        frontLeft.setPower(y + x + rot);
+        frontRight.setPower(y - x + rot);
+        backLeft.setPower(y - x - rot);
+        backRight.setPower(y + x - rot);
+        frontLeft.update();
+        frontRight.update();
+        backLeft.update();
+        backRight.update();
+    }
+    public double getDistance(Pose p1, Pose p2) {
+        return Math.sqrt((p1.getX() - p2.getX()) * (p1.getX() - p2.getX()) + (p1.getY() - p2.getY()) * (p1.getY() - p2.getY()));
+    }
+
+    public void setKP(double kp) {
+        this.kp = kp;
+    }
+    public void setKD(double kd)
+    {
+        this.kd = kd;
+    }
+
+}

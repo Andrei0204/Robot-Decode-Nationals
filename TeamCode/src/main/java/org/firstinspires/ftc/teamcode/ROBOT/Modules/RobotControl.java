@@ -1,15 +1,10 @@
 package org.firstinspires.ftc.teamcode.ROBOT.Modules;
 
-import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
-import static org.firstinspires.ftc.teamcode.ROBOT.RobotKick.deltahhypot;
+import static org.firstinspires.ftc.teamcode.ROBOT.RobotKickred.deltahhypot;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Blocator.Blocator;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Launcher.Launcher;
@@ -17,8 +12,6 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Pivot.Pivot;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IRobotModule;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.gamepads.StickyGamepad;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Point;
-
-import java.util.Locale;
 
 @Config
 public class RobotControl implements IRobotModule {
@@ -28,23 +21,24 @@ public class RobotControl implements IRobotModule {
     public static double power = 360;
     public static double function = 24;
     public static double rpm = 60;
-    public static double constant = 0.4;
+    public static double constant = 0.43;
     public static double constantclose = 0.37;
-        public static double multfar = 0.23;
-    public static double multpiv = 1.152   ;
+        public static double multfar = 0.24 ;
+    public static double multpiv = 1.1   ;
     public static double multclose = 0.13;
-    boolean timer;
+    boolean timers;
     boolean farlaunch = false;
     boolean closelaunch=false;
     ElapsedTime backtime;
     ElapsedTime opentime;
     double deltax = 0;
     double deltay = 0;
-    public double alpha = 0;
-    public double truealpha = 0;
+    public static double repemekms = 0.666;
+    public static double unghie =42.3;
     Point redGoal = new Point(136 * 2.54, 120 * 2.54);
     Point blueGoal = new Point(140 * 2.54, 15 * 2.54);
-
+    double throwtime =-2;
+    ElapsedTime timer;
     public RobotControl(Gamepad gamepad1, Gamepad gamepad2, RoboModules modules) {
         this.gamepad1 = gamepad1;
         stickyGamepad1 = new StickyGamepad(gamepad1);
@@ -52,11 +46,11 @@ public class RobotControl implements IRobotModule {
         opentime = new ElapsedTime();
         this.gamepad2 = gamepad2;
         stickyGamepad2 = new StickyGamepad(gamepad2);
-
+        timer= new ElapsedTime();
         this.modules = modules;
         modules.launcher.pivot.setState(Pivot.State.AUTO);
 
-
+        modules.launcher.launcher.kV= 1.29;
     }
 
 
@@ -127,6 +121,9 @@ public class RobotControl implements IRobotModule {
             modules.launcher.launcher.setAuto(0);
             farlaunch = false;
             closelaunch = false;
+            throwtime=-2;
+            modules.intake.setManualPower(0);
+            modules.launcher.blocator.setState(Blocator.State.CLOSE);
         }
         if (modules.launcher.launcher.Motorvel() > 53) {
             if (Math.abs(modules.launcher.pivot.getCurrentPosition() - 1.2 * modules.launcher.launcher.Motorvel() - 26) > 0.03 && modules.launcher.launcher.getAmps() < 4)
@@ -142,18 +139,53 @@ public class RobotControl implements IRobotModule {
         }
         if(closelaunch)
         {
-            modules.launcher.pivot.setangle(39);
-            modules.launcher.launcher.setAuto(Math.abs(deltahhypot) / 220 * multclose + constantclose);
+            if(Math.abs(deltahhypot) >150)
+                modules.launcher.pivot.setangle(unghie);
+            else
+                modules.launcher.pivot.setangle(unghie-2);
+            modules.launcher.launcher.setAuto(repemekms);
+            if(modules.launcher.launcher .Motorvel()> repemekms*100-1 &&throwtime==-2)
+                if(!gamepad1.isRumbling())
+                    gamepad1.rumble(200);
             if(stickyGamepad1.a)
-                if(modules.launcher.blocator.getState()== Blocator.State.CLOSE) {
+            {
+                throwtime=-1;
+                timer.reset();
+            }
+            if(throwtime>= -1) {
+                modules.intake.setManualPower(1);
+                if (throwtime == -1) {
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
-                    modules.intake.setManualPower(1);
+                    throwtime++;
+                    timer.reset();
                 }
-                else{
+                if (timer.milliseconds() > 100 && throwtime == 0) {
+                    modules.launcher.blocator.setState(Blocator.State.CLOSE);
 
-                        modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                        modules.intake.setManualPower(0);
-                    }
+                    throwtime++;
+                    timer.reset();
+                }
+                if ( (timer.milliseconds() > 550 ||( modules.launcher.launcher .Motorvel()> repemekms*100-3 && timer.milliseconds()>200)) && throwtime == 1) {
+                    throwtime++;
+                    modules.launcher.blocator.setState(Blocator.State.OPEN);
+                    timer.reset();
+                }
+                if (timer.milliseconds() > 120 && throwtime == 2) {
+                    modules.launcher.blocator.setState(Blocator.State.CLOSE);
+                    throwtime++;
+                    timer.reset();
+                }
+                if ((timer.milliseconds() > 550 || (modules.launcher.launcher .Motorvel()> repemekms*100-3&& timer.milliseconds()>200) ) && throwtime == 3) {
+                    modules.launcher.blocator.setState(Blocator.State.OPEN);
+                    throwtime++;
+                    timer.reset();
+                }
+                if (timer.milliseconds() > 300 && throwtime == 4) {
+                    throwtime=-2;
+                    modules.launcher.pivot.setangle(37);
+                    timer.reset();
+                }
+            }
         }
 
 

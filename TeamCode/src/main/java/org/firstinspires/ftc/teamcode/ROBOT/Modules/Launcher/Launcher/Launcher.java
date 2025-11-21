@@ -26,8 +26,8 @@ public class Launcher implements IStateBasedModule, IRobotModule {
     public static double autopose = 0;
     public static double target = 0; //cm
     public static double currentPosition = startpos;
-    public static double kP = 0.0080, kI = 0, kD = 0.00, kf = 150; //TODO Valori PID!!!!
-    public static double kS = 300, kV = 1.34 ; //TODO Valori PID!!!!
+    public static double kP = 0.0080, kI = 0, kD = 0.00, kf = 185; //TODO Valori PID!!!!
+    public static double kS = 300, kV = 1.28 ; //TODO Valori PID!!!!
 
     private static boolean ENABLED = true;
 
@@ -50,6 +50,7 @@ public class Launcher implements IStateBasedModule, IRobotModule {
             encoder = null;
             motorOne = null;
         } else {
+            kV=1.28;
             encoder = new Motor(hardwareMap, "INTAKE", Motor.GoBILDA.BARE);
             launcher = new Motor(hardwareMap, "LANSATOR", Motor.GoBILDA.BARE);
             launcher.encoder = encoder.encoder;

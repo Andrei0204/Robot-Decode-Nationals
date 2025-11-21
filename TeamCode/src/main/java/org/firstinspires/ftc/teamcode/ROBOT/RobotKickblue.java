@@ -33,11 +33,13 @@ import static org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turre
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -65,7 +67,7 @@ import java.util.Locale;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 @TeleOp
-public class RobotKick extends OpMode {
+public class RobotKickblue extends OpMode {
     DcMotor BL = null, BR = null, FR = null, FL = null;
     DcMotor push;
     RoboModules modules;
@@ -75,11 +77,15 @@ public class RobotKick extends OpMode {
     double deltax = 0;
     double deltay = 0;
     public static double deltahhypot = 0;
-    Point redGoal = new Point(136 * 2.54, -136 * 2.54);
-    Point blueGoal = new Point(140 * 2.54, -8.5 * 2.54);
-    boolean isred=true;
+    Point redGoal = new Point(136 * 2.54, -140 * 2.54);
+    Point blueGoal = new Point(140 * 2.54, -2 * 2.54);
+    boolean isred=false;
     GoBildaPinpointDriver odo = null;
-
+    Boolean odobased=true;
+    Boolean llbased=false;
+    ElapsedTime movement;
+    Limelight3A limelight;
+    LLResult result=null;
     @Override
     public void init() {
 
@@ -91,6 +97,7 @@ public class RobotKick extends OpMode {
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         odo.resetPosAndIMU();
+        movement = new ElapsedTime();
         BL = hardwareMap.get(DcMotor.class, "BL");
         BR = hardwareMap.get(DcMotor.class, "BR");
         FR = hardwareMap.get(DcMotor.class, "FR");
@@ -108,11 +115,22 @@ public class RobotKick extends OpMode {
         FL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         //TODO modifca de aici daca nu se misca bine robotu
 
+        FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FR.setDirection(DcMotorSimple.Direction.REVERSE);
         BR.setDirection(DcMotorSimple.Direction.REVERSE);
         FL.setDirection(DcMotorSimple.Direction.FORWARD);
         BL.setDirection(DcMotorSimple.Direction.FORWARD);
         modules.launcher.turret.setState(Turret.State.TEST);
+
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+
+        telemetry.setMsTransmissionInterval(11);
+
+        limelight.pipelineSwitch(0);
+        limelight.start();
     }
 
 
@@ -121,7 +139,7 @@ public class RobotKick extends OpMode {
         if(gamepad1.dpad_up)
             modules.launcher.turret.turret.resetEncoder();
         if(gamepad1.dpad_down)
-            odo.setPosition(new Pose2D(DistanceUnit.CM,Position.getPose().getX(),Position.getPose().getY(),AngleUnit.RADIANS,Position.getPose().getHeading()));
+            odo.setPosition(new Pose2D(DistanceUnit.CM,Position.getPose().getX(),Position.getPose().getY()+20,AngleUnit.RADIANS,0));
 
     }
 
@@ -152,13 +170,13 @@ public class RobotKick extends OpMode {
         FR.setPower((y - x - rx)/denominator);
         BL.setPower((y - x + rx)/denominator);
         BR.setPower((y + x - rx)/denominator);
+
+
 //        push.setPower(-0.01);
-        if(gamepad1.dpad_left)
-            isred=false;
         if(gamepad1.dpad_right)
-            isred=true;
+            isred=false;
         if(gamepad1.dpad_up)
-            odo.setPosition(new Pose2D( DistanceUnit.CM,8*2.54,-7*2.54,AngleUnit.RADIANS,0));
+            odo.setPosition(new Pose2D( DistanceUnit.CM,154,-154,AngleUnit.RADIANS,odo.getHeading(AngleUnit.RADIANS)));
         if(isred) {
             deltax = +pos.getX(DistanceUnit.CM) - redGoal.x;
             deltay = -pos.getY(DistanceUnit.CM) + redGoal.y;
@@ -175,9 +193,40 @@ public class RobotKick extends OpMode {
         double anglenorm = -Math.toDegrees(normalizaion(anglelocal) );
         if(anglenorm<=-140)
             anglenorm +=360;
-        modules.launcher.turret.setAuto(anglenorm* TICKSDEG);
 
 
+        if(odobased)
+            modules.launcher.turret.setAuto(anglenorm* TICKSDEG);
+        if(!odobased && !llbased)
+            modules.launcher.turret.setAuto(0* TICKSDEG);
+        if(llbased)
+        {
+            result = limelight.getLatestResult();
+            if (result.isValid() ) {
+                if( movement.milliseconds()>200 &&Math.abs(modules.launcher.turret.getCurrentPosition() - result.getTx() * TICKSDEG)/TICKSDEG >1)
+                { modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * TICKSDEG);
+                movement.reset();
+                }
+            }
+        }
+        if(gamepad2.dpad_down) {
+            odobased = false;
+            llbased=false;
+        }
+        if(gamepad2.dpad_right){
+            odobased = false;
+            llbased=true;
+        }
+        if(gamepad2.dpad_left)
+        {
+            odobased = true;
+            llbased=false;
+        }
+
+        if(gamepad2.left_trigger>0.2)
+            push.setPower(-gamepad2.left_trigger);
+        if(gamepad2.right_trigger>0.2)
+            push.setPower(gamepad2.right_trigger);
         telemetry.addData("dx",deltax) ;
         telemetry.addData("dy",deltay);
         telemetry.addData("dh",Math.abs(deltahhypot));

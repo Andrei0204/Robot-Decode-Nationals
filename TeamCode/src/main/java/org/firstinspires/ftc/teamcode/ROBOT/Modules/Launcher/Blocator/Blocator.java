@@ -1,14 +1,15 @@
 package org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Blocator;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IRobotModule;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IStateBasedModule;
-
+@Config
 public class Blocator implements IRobotModule, IStateBasedModule {
     public static double target = 0; //cm
-    public static double openpos = 0;
+    public static double openpos = 0.07;
    public static double closepos = 0.2 ;
 
     private static boolean ENABLED = true;

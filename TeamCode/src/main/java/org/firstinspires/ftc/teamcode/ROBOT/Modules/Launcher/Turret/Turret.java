@@ -110,7 +110,9 @@
                 auto=220*TICKSDEG;
             autopose = auto;
         }
-
+        public double getAuto(){
+            return autopose;
+        }
         @Override
         public void update() {
             if (!ENABLED) return;

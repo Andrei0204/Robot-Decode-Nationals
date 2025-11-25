@@ -137,7 +137,7 @@ public class AutoCloseBlue extends OpMode {
                 modules.launcher.turret.setState(Turret.State.TEST);
                 modules.launcher.launcher.setAuto(rpm+0.01);
                 follower.setTarget(new Pose(180, -130, Math.toRadians(41)));
-                modules.launcher.pivot.setangle(41);
+                modules.launcher.pivot.setangle(41.5);
                 if (follower.localization.getX() < 290)
                     modules.launcher.turret.setAuto((angl+1) * TICKSDEG);
                 if (follower.reachedTarget(6)) {
@@ -261,18 +261,18 @@ public class AutoCloseBlue extends OpMode {
                 {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     follower.setTarget(new Pose(120, -25, Math.toRadians(90)));
-                    follower.overallmulti =0.3;
+                    follower.overallmulti =0.35;
                     cases=7;
                 }
                 break;
             case 7: //colect sec
-                if(follower.reachedTarget(5.2)) {
+                if(follower.reachedTarget(7)) {
                     modules.launcher.turret.setAuto((angl-2) * TICKSDEG);
                     modules.intake.setManualPower(0);
                     follower.overallmulti = 1;
                     modules.launcher.launcher.setAuto(rpm+0.0);
                     follower.setTarget(new Pose(188, -140, Math.toRadians(41)));
-                    modules.launcher.pivot.setangle(43);
+                    modules.launcher.pivot.setangle(42.5);
                     cases=8;
                 }
                 break;
@@ -324,13 +324,13 @@ public class AutoCloseBlue extends OpMode {
                 if(follower.reachedTarget(5))
                 {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                    follower.overallmulti =0.3;
-                    follower.setTarget(new Pose(60, -20, Math.toRadians(90)));
+                    follower.overallmulti =0.35;
+                    follower.setTarget(new Pose(60, -16.5, Math.toRadians(90)));
                     cases=11;
                 }
                 break;
             case 11: //colect third
-                if(follower.reachedTarget(6)) {
+                if(follower.reachedTarget(7)) {
                     modules.intake.setManualPower(0);
                     follower.overallmulti = 1;
                     modules.launcher.launcher.setAuto(rpm+0.0);

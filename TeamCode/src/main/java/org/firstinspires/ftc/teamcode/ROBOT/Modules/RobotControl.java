@@ -33,10 +33,12 @@ public class RobotControl implements IRobotModule {
     ElapsedTime opentime;
     double deltax = 0;
     double deltay = 0;
-    public static double repemekms = 0.666;
+    public static double repemekms = 0.65;
     public static double unghie =42.3;
     Point redGoal = new Point(136 * 2.54, 120 * 2.54);
     Point blueGoal = new Point(140 * 2.54, 15 * 2.54);
+    public static double unghimanual=0;
+    public static double unghipivot=0;
     double throwtime =-2;
     ElapsedTime timer;
     public RobotControl(Gamepad gamepad1, Gamepad gamepad2, RoboModules modules) {
@@ -139,10 +141,10 @@ public class RobotControl implements IRobotModule {
         }
         if(closelaunch)
         {
-            if(Math.abs(deltahhypot) >150)
-                modules.launcher.pivot.setangle(unghie);
+            if(Math.abs(deltahhypot) >170)
+                modules.launcher.pivot.setangle(unghie+unghipivot);
             else
-                modules.launcher.pivot.setangle(unghie-2);
+                modules.launcher.pivot.setangle(unghie-2+unghipivot);
             modules.launcher.launcher.setAuto(repemekms);
             if(modules.launcher.launcher .Motorvel()> repemekms*100-1 &&throwtime==-2)
                 if(!gamepad1.isRumbling())
@@ -175,7 +177,7 @@ public class RobotControl implements IRobotModule {
                     throwtime++;
                     timer.reset();
                 }
-                if ((timer.milliseconds() > 550 || (modules.launcher.launcher .Motorvel()> repemekms*100-3&& timer.milliseconds()>200) ) && throwtime == 3) {
+                if ((timer.milliseconds() > 450 || (modules.launcher.launcher .Motorvel()> repemekms*100-3&& timer.milliseconds()>200) ) && throwtime == 3) {
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     throwtime++;
                     timer.reset();
@@ -209,6 +211,15 @@ public class RobotControl implements IRobotModule {
 //        truealpha = alpha + pos.getHeading(AngleUnit.RADIANS);
 //        if(gamepad1.dpad_up)
 //            odo.resetPosAndIMU();
+        if(stickyGamepad2.b)
+            unghimanual+=3;
+        if(stickyGamepad2.x)
+            unghimanual-=3;
+
+        if(stickyGamepad2.a)
+            unghipivot-=1;
+        if(stickyGamepad2.y)
+            unghipivot+=1;
     }
 
 

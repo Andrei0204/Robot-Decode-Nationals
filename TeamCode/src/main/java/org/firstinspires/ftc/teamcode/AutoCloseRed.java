@@ -93,7 +93,7 @@ public class AutoCloseRed extends OpMode {
     int throwtime = -1;
     public static double rpm = 0.51;
     public static double angl = 45.5;
-    public static double repemekms = 0.57;
+    public static double repemekms = 0.65;
     Limelight3A limelight;
     LLResult result=null;
     @Override
@@ -154,6 +154,8 @@ public class AutoCloseRed extends OpMode {
                 modules.launcher.turret.setState(Turret.State.TEST);
                 modules.launcher.launcher.setAuto(repemekms);
 
+                if(!follower.reachedTarget(6))
+                    timer.reset();
                 follower.setTarget(new Pose(195, -230, Math.toRadians(-90)));
                 modules.launcher.pivot.setangle(41.7);
                 if (follower.localization.getX() < 290) {
@@ -169,7 +171,7 @@ public class AutoCloseRed extends OpMode {
 
                     }
                 }
-                if (follower.reachedTarget(6) && modules.launcher.launcher.Motorvel() > repemekms * 100 - 3) {
+                if (follower.reachedTarget(6) && (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3 || timer. milliseconds()>350) ){
                     timer.reset();
                     cases = 2;
                     throwtime = -1;
@@ -199,7 +201,7 @@ public class AutoCloseRed extends OpMode {
                     throwtime++;
                     timer.reset();
                 }
-                if ((timer.milliseconds() > 1000 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 4 && timer.milliseconds() > 300)) && throwtime == 1) {
+                if ((timer.milliseconds() > 400 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 4 && timer.milliseconds() > 300)) && throwtime == 1) {
                     throwtime++;
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     timer.reset();
@@ -213,7 +215,7 @@ public class AutoCloseRed extends OpMode {
                     throwtime++;
                     timer.reset();
                 }
-                if ((timer.milliseconds() > 1000 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3 && timer.milliseconds() > 200)) && throwtime == 3) {
+                if ((timer.milliseconds() > 400 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3 && timer.milliseconds() > 200)) && throwtime == 3) {
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     throwtime++;
                     timer.reset();
@@ -242,7 +244,7 @@ public class AutoCloseRed extends OpMode {
 
                     modules.launcher.launcher.setAuto(repemekms);
                     follower.setTarget(new Pose(175, -350, Math.toRadians(20)));
-                    modules.launcher.pivot.setangle(40);
+                    modules.launcher.pivot.setangle(42.5);
                     modules.intake.setManualPower(0);
                     movement.reset();
                 }
@@ -291,7 +293,7 @@ public class AutoCloseRed extends OpMode {
                     throwtime++;
                     timer.reset();
                 }
-                if ((timer.milliseconds() > 1000 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 4 && timer.milliseconds() > 300)) && throwtime == 1) {
+                if ((timer.milliseconds() > 400 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 4 && timer.milliseconds() > 300)) && throwtime == 1) {
                     throwtime++;
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     timer.reset();
@@ -303,7 +305,7 @@ public class AutoCloseRed extends OpMode {
                     throwtime++;
                     timer.reset();
                 }
-                if ((timer.milliseconds() > 1000 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3 && timer.milliseconds() > 150)) && throwtime == 3) {
+                if ((timer.milliseconds() > 400 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3 && timer.milliseconds() > 150)) && throwtime == 3) {
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     throwtime++;
                     timer.reset();
@@ -327,7 +329,7 @@ public class AutoCloseRed extends OpMode {
                 }
                 break;
             case 7: //colect sec
-                if (follower.reachedTarget(4)) {
+                if (follower.reachedTarget(5.5)) {
                     modules.launcher.turret.setAuto((angl ) * TICKSDEG);
                     modules.intake.setManualPower(0.6);
                     follower.overallmulti = 1;
@@ -369,11 +371,11 @@ public class AutoCloseRed extends OpMode {
                 }
                 if (timer.milliseconds() > 100 && throwtime == 0) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                    modules.launcher.pivot.setangle(42);
+                    modules.launcher.pivot.setangle(42.5);
                     throwtime++;
                     timer.reset();
                 }
-                if ((timer.milliseconds() > 1000 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 4 && timer.milliseconds() >250)) && throwtime == 1) {
+                if ((timer.milliseconds() > 400 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 4 && timer.milliseconds() >250)) && throwtime == 1) {
                     throwtime++;
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
 
@@ -381,13 +383,13 @@ public class AutoCloseRed extends OpMode {
                 }
                 if (timer.milliseconds() > 120 && throwtime == 2) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                    modules.launcher.pivot.setangle(42);
+                    modules.launcher.pivot.setangle(42.5);
                     throwtime++;
 
                     modules.intake.setManualPower(0.8);
                     timer.reset();
                 }
-                if ((timer.milliseconds() > 1000 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 2 && timer.milliseconds() > 200)) && throwtime == 3) {
+                if ((timer.milliseconds() > 400 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 2 && timer.milliseconds() > 200)) && throwtime == 3) {
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     throwtime++;
                     timer.reset();
@@ -405,13 +407,13 @@ public class AutoCloseRed extends OpMode {
                 follower.setTarget(new Pose(70, -280, Math.toRadians(-90)));
                 if (follower.reachedTarget(8)) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                    follower.setTarget(new Pose(70, -355, Math.toRadians(-90)));
+                    follower.setTarget(new Pose(70, -358, Math.toRadians(-90)));
                     follower.overallmulti = 0.4;
                     cases = 11;
                 }
                 break;
             case 11: //colect third
-                if (follower.reachedTarget(4)) {
+                if (follower.reachedTarget(5.5)) {
 
                     modules.intake.setManualPower(0);
                     follower.overallmulti = 1;
@@ -459,7 +461,7 @@ public class AutoCloseRed extends OpMode {
                     throwtime++;
                     timer.reset();
                 }
-                if ((timer.milliseconds() > 1000 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3.2 && timer.milliseconds() > 200)) && throwtime == 1) {
+                if ((timer.milliseconds() > 400 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3.2 && timer.milliseconds() > 200)) && throwtime == 1) {
                     throwtime++;
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     timer.reset();
@@ -471,7 +473,7 @@ public class AutoCloseRed extends OpMode {
                     throwtime++;
                     timer.reset();
                 }
-                if ((timer.milliseconds() > 1000 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3.2 && timer.milliseconds() > 150)) && throwtime == 3) {
+                if ((timer.milliseconds() > 400 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3.2 && timer.milliseconds() > 150)) && throwtime == 3) {
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     throwtime++;
                     timer.reset();

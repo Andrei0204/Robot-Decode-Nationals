@@ -30,6 +30,8 @@ package org.firstinspires.ftc.teamcode.ROBOT;
 
 
 import static org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret.TICKSDEG;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.unghimanual;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.unghipivot;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -78,7 +80,7 @@ public class RobotKickblue extends OpMode {
     double deltay = 0;
     public static double deltahhypot = 0;
     Point redGoal = new Point(136 * 2.54, -140 * 2.54);
-    Point blueGoal = new Point(140 * 2.54, -2 * 2.54);
+    Point blueGoal = new Point(140 * 2.54, -6 * 2.54);
     boolean isred=false;
     GoBildaPinpointDriver odo = null;
     Boolean odobased=true;
@@ -136,10 +138,12 @@ public class RobotKickblue extends OpMode {
 
     @Override
     public void init_loop() {
-        if(gamepad1.dpad_up)
+        if(gamepad2.a) {
+            odo.setPosition(new Pose2D(DistanceUnit.CM, -1.5, -128, AngleUnit.RADIANS, 0));
             modules.launcher.turret.turret.resetEncoder();
-        if(gamepad1.dpad_down)
-            odo.setPosition(new Pose2D(DistanceUnit.CM,Position.getPose().getX(),Position.getPose().getY()+20,AngleUnit.RADIANS,0));
+        }
+        if(gamepad2.dpad_down)
+            odo.setPosition(new Pose2D(DistanceUnit.CM,Position.getPose().getX()+17,Position.getPose().getY(),AngleUnit.RADIANS,Position.getPose().getHeading()));
 
     }
 
@@ -175,9 +179,12 @@ public class RobotKickblue extends OpMode {
 //        push.setPower(-0.01);
         if(gamepad1.dpad_right)
             isred=false;
-        if(gamepad1.dpad_up)
-            odo.setPosition(new Pose2D( DistanceUnit.CM,154,-154,AngleUnit.RADIANS,odo.getHeading(AngleUnit.RADIANS)));
-        if(isred) {
+        if(gamepad2.dpad_up) {
+            unghimanual=0;
+            unghipivot=0;
+            odo.setPosition(new Pose2D(DistanceUnit.CM, 154, -154, AngleUnit.RADIANS, 0));
+        }
+            if(isred) {
             deltax = +pos.getX(DistanceUnit.CM) - redGoal.x;
             deltay = -pos.getY(DistanceUnit.CM) + redGoal.y;
         }else
@@ -196,7 +203,7 @@ public class RobotKickblue extends OpMode {
 
 
         if(odobased)
-            modules.launcher.turret.setAuto(anglenorm* TICKSDEG);
+            modules.launcher.turret.setAuto((unghimanual+anglenorm)* TICKSDEG);
         if(!odobased && !llbased)
             modules.launcher.turret.setAuto(0* TICKSDEG);
         if(llbased)
@@ -209,14 +216,11 @@ public class RobotKickblue extends OpMode {
                 }
             }
         }
-        if(gamepad2.dpad_down) {
+        if(gamepad2.dpad_right) {
             odobased = false;
             llbased=false;
         }
-        if(gamepad2.dpad_right){
-            odobased = false;
-            llbased=true;
-        }
+
         if(gamepad2.dpad_left)
         {
             odobased = true;
@@ -225,7 +229,7 @@ public class RobotKickblue extends OpMode {
 
         if(gamepad2.left_trigger>0.2)
             push.setPower(-gamepad2.left_trigger);
-        if(gamepad2.right_trigger>0.2)
+        if(gamepad2.right_trigger>0.07)
             push.setPower(gamepad2.right_trigger);
         telemetry.addData("dx",deltax) ;
         telemetry.addData("dy",deltay);

@@ -30,6 +30,8 @@ package org.firstinspires.ftc.teamcode.ROBOT;
 
 
 import static org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret.TICKSDEG;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.unghimanual;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.unghipivot;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -136,10 +138,12 @@ public class RobotKickred extends OpMode {
 
     @Override
     public void init_loop() {
-        if(gamepad1.dpad_up)
+        if(gamepad2.a) {
+            odo.setPosition(new Pose2D(DistanceUnit.CM, -157, -21, AngleUnit.RADIANS, 0));
             modules.launcher.turret.turret.resetEncoder();
-        if(gamepad1.dpad_down)
-            odo.setPosition(new Pose2D(DistanceUnit.CM,Position.getPose().getX(),Position.getPose().getY()+20,AngleUnit.RADIANS,Position.getPose().getHeading()));
+        }
+        if(gamepad2.dpad_down)
+            odo.setPosition(new Pose2D(DistanceUnit.CM,Position.getPose().getX(),Position.getPose().getY()+10,AngleUnit.RADIANS,Position.getPose().getHeading()));
 
     }
 
@@ -175,9 +179,11 @@ public class RobotKickred extends OpMode {
 //        push.setPower(-0.01);
         if(gamepad1.dpad_right)
             isred=true;
-        if(gamepad1.dpad_up)
-            odo.setPosition(new Pose2D( DistanceUnit.CM,154,-154,AngleUnit.RADIANS,0));
-        if(isred) {
+        if(gamepad2.dpad_up) {
+            odo.setPosition(new Pose2D(DistanceUnit.CM, 154, -154, AngleUnit.RADIANS, 0));
+            unghimanual=0;
+            unghipivot=0;
+        }if(isred) {
             deltax = +pos.getX(DistanceUnit.CM) - redGoal.x;
             deltay = -pos.getY(DistanceUnit.CM) + redGoal.y;
         }else
@@ -196,7 +202,7 @@ public class RobotKickred extends OpMode {
 
 
         if(odobased)
-            modules.launcher.turret.setAuto(anglenorm* TICKSDEG);
+            modules.launcher.turret.setAuto((unghimanual+anglenorm)* TICKSDEG);
         if(!odobased && !llbased)
             modules.launcher.turret.setAuto(0* TICKSDEG);
         if(llbased)
@@ -213,18 +219,20 @@ public class RobotKickred extends OpMode {
             odobased = false;
             llbased=false;
         }
-        if(gamepad2.dpad_right){
-            odobased = false;
-            llbased=true;
-        }
+//        if(gamepad2.dpad_right){
+//            odobased = false;
+//            llbased=true;
+//        }
         if(gamepad2.dpad_left)
         {
             odobased = true;
             llbased=false;
         }
 
-        if(gamepad2.left_trigger>0.2)
+        if(gamepad2.left_trigger>0.07)
             push.setPower(-gamepad2.left_trigger);
+        if(gamepad2.left_bumper)
+            push.setPower(-0);
         if(gamepad2.right_trigger>0.2)
             push.setPower(gamepad2.right_trigger);
         telemetry.addData("dx",deltax) ;

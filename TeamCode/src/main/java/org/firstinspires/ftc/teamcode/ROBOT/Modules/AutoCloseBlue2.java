@@ -83,7 +83,7 @@ public class AutoCloseBlue2 extends OpMode {
     int throwtime = -1;
     public static double rpm = 0.51;
     public static double angl = 0.5;
-    public static double repemekms = 0.63;
+    public static double repemekms = 0.52;
     Limelight3A limelight;
     LLResult result = null;
 
@@ -105,7 +105,7 @@ public class AutoCloseBlue2 extends OpMode {
         modules = new RoboModules(hardwareMap);
 
         modules.launcher.turret.setState(Turret.State.TEST);
-        modules.launcher.launcher.kV = 1.27;
+
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
 
         telemetry.setMsTransmissionInterval(11);
@@ -151,7 +151,7 @@ public class AutoCloseBlue2 extends OpMode {
                 modules.launcher.pivot.setangle(42.8);
                 if (follower.localization.getX() < 290) {
                     modules.launcher.turret.setAuto((angl + 1) * TICKSDEG);
-                    modules.intake.setManualPower(0.8);
+
 
                 }
                 if (follower.reachedTarget(6)) {
@@ -162,7 +162,7 @@ public class AutoCloseBlue2 extends OpMode {
 
                     }
                 }
-                if (follower.reachedTarget(6) && (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3 || timer.milliseconds() > 350)) {
+                if (follower.reachedTarget(6) && (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3 || timer.milliseconds() > 800)) {
                     timer.reset();
                     cases = 2;
                     throwtime = -1;
@@ -221,21 +221,21 @@ public class AutoCloseBlue2 extends OpMode {
                 }
                 break;
             case 3: //collect first
-                modules.launcher.launcher.kV = 1.275;
+
                 modules.launcher.launcher.setAuto(0);
                 modules.intake.setManualPower(1);
                 modules.launcher.blocator.setState(Blocator.State.CLOSE);
 
                 follower.setTarget(new Pose(187, -32.5, Math.toRadians(90)));
                 follower.overallmulti = 0.42;
-                if (follower.reachedTarget(5)) {
+                if (follower.reachedTarget(5) || timer.milliseconds()>2500) {
                     modules.launcher.turret.setAuto((angl - 5.5) * TICKSDEG);
                     cases = -3;
                     follower.overallmulti = 1;
 
                     modules.launcher.launcher.setAuto(repemekms);
                     follower.setTarget(new Pose(166, -23.5, Math.toRadians(-30)));
-                    modules.launcher.pivot.setangle(41.6);
+                    modules.launcher.pivot.setangle(42.3);
                     modules.intake.setManualPower(0);
                     movement.reset();
                 }
@@ -254,11 +254,11 @@ public class AutoCloseBlue2 extends OpMode {
                         movement.reset();
 
                     }
-                    modules.intake.setManualPower(1);
+
                 }
                 if (follower.reachedTargetAndStopped(6)) {
                     cases = 5;
-
+                    modules.intake.setManualPower(1);
                     throwtime = -1;
                     timer.reset();
                 }
@@ -311,7 +311,7 @@ public class AutoCloseBlue2 extends OpMode {
             case 6: //gotosec
 
                 modules.launcher.launcher.setAuto(0);
-                follower.setTarget(new Pose(120, -80, Math.toRadians(90)));
+                follower.setTarget(new Pose(120, -90, Math.toRadians(90)));
                 if (follower.reachedTarget(8)) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     follower.setTarget(new Pose(120, -25, Math.toRadians(90)));
@@ -322,7 +322,7 @@ public class AutoCloseBlue2 extends OpMode {
             case 7: //colect sec
                 if (follower.reachedTarget(6)) {
                     modules.launcher.turret.setAuto((angl) * TICKSDEG);
-                    modules.intake.setManualPower(0.6);
+
                     follower.overallmulti = 1;
 
                     modules.launcher.launcher.setAuto(repemekms + 0.0);
@@ -339,9 +339,10 @@ public class AutoCloseBlue2 extends OpMode {
                         movement.reset();
 
                     }
-                    modules.intake.setManualPower(1);
+
                 }
                 if (follower.reachedTargetAndStopped(6)) {
+                    modules.intake.setManualPower(1);
                     cases = 9;
                     throwtime = -1;
                     timer.reset();
@@ -395,7 +396,7 @@ public class AutoCloseBlue2 extends OpMode {
                 break;
             case 10: //gotothird
                 modules.launcher.launcher.setAuto(0);
-                follower.setTarget(new Pose(60, -80, Math.toRadians(90)));
+                follower.setTarget(new Pose(60, -90, Math.toRadians(90)));
                 if (follower.reachedTarget(8)) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     follower.setTarget(new Pose(60, -20, Math.toRadians(90)));
@@ -422,12 +423,13 @@ public class AutoCloseBlue2 extends OpMode {
                         modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - (result.getTx() - 3.5) * TICKSDEG);
                         movement.reset();
                     }
-                    modules.intake.setManualPower(1);
+
                 }
                 if (follower.reachedTargetAndStopped(6)) {
                     cases = 13;
                     throwtime = -1;
                     timer.reset();
+                    modules.intake.setManualPower(1);
                 }
                 break;
 
@@ -463,7 +465,7 @@ public class AutoCloseBlue2 extends OpMode {
                     throwtime++;
                     timer.reset();
                 }
-                if ((timer.milliseconds() > 550 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3.2 && timer.milliseconds() > 150)) && throwtime == 3) {
+                if ((timer.milliseconds() > 550 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3.8 && timer.milliseconds() > 150)) && throwtime == 3) {
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     throwtime++;
                     timer.reset();

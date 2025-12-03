@@ -22,7 +22,7 @@
         public static double autopose = 0;
         public static double target = 0; //cm
         public static double currentPosition = startpos;
-        public  static double kP = 0.0078, kI = 0.0007, kD = 0.00015; //TODO Valori PID!!!!
+        public  static double kP = 0.007, kI = 0.0007, kD = 0.00015; //TODO Valori PID!!!!
 
         private static boolean ENABLED = true;
         public CoolMotor turret = null;
@@ -106,8 +106,8 @@
         public void setAuto(double auto) {
             if(auto<0)
                 auto=0;
-            if(auto>220*TICKSDEG)
-                auto=220*TICKSDEG;
+            if(auto>200*TICKSDEG)
+                auto=200*TICKSDEG;
             autopose = auto;
         }
         public double getAuto(){

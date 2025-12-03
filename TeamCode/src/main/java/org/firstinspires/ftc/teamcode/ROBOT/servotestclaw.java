@@ -16,7 +16,7 @@ public class  servotestclaw extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        test =hardwareMap.get(Servo.class,"blocator");
+        test =hardwareMap.get(Servo.class,"BEC");
 
 
         test.setPosition(pos);

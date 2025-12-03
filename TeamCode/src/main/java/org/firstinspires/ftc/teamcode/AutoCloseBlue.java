@@ -199,7 +199,7 @@ public class AutoCloseBlue extends OpMode {
 
                     modules.launcher.launcher.setAuto(rpm+0.007);
                     follower.setTarget(new Pose(166 , -23.5, Math.toRadians(-30)));
-                    modules.launcher.pivot.setangle(42);
+                    modules.launcher.pivot.setangle(40);
                     modules.intake.setManualPower(0);
                     follower.overallmulti =1;
                 }
@@ -272,7 +272,7 @@ public class AutoCloseBlue extends OpMode {
                     follower.overallmulti = 1;
                     modules.launcher.launcher.setAuto(rpm+0.0);
                     follower.setTarget(new Pose(188, -140, Math.toRadians(41)));
-                    modules.launcher.pivot.setangle(42.5);
+                    modules.launcher.pivot.setangle(40);
                     cases=8;
                 }
                 break;
@@ -335,7 +335,7 @@ public class AutoCloseBlue extends OpMode {
                     follower.overallmulti = 1;
                     modules.launcher.launcher.setAuto(rpm+0.0);
                     follower.setTarget(new Pose(186, -140, Math.toRadians(41)));
-                    modules.launcher.pivot.setangle(40);
+                    modules.launcher.pivot.setangle(38);
                     cases=12;
                 }
                 break;

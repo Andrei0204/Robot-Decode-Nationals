@@ -26,8 +26,9 @@ public class Launcher implements IStateBasedModule, IRobotModule {
     public static double autopose = 0;
     public static double target = 0; //cm
     public static double currentPosition = startpos;
-    public static double kP = 0.0080, kI = 0, kD = 0.00, kf = 185; //TODO Valori PID!!!!
-    public static double kS = 300, kV = 1.28 ; //TODO Valori PID!!!!
+    public static double kP = 0.45, kI = 0, kD = 0.00, kf = 0; //TODO Valori PID!!!!
+    public static double kS = 300, kV = 1.16
+            ; //TODO Valori PID!!!!
 
     private static boolean ENABLED = true;
 
@@ -39,8 +40,11 @@ public class Launcher implements IStateBasedModule, IRobotModule {
     public EXTRUNMODE runMode;
     VoltageSensor voltage;
 
-    Motor launcher;
-    DcMotor motorOne;
+ public    Motor launcher;
+
+public     DcMotor motorOne;
+    public     Motor launcher2;
+   public DcMotor motorTwo;
 
     double actualKs = 0;
     public Launcher(HardwareMap hardwareMap, State initialState) {
@@ -50,13 +54,18 @@ public class Launcher implements IStateBasedModule, IRobotModule {
             encoder = null;
             motorOne = null;
         } else {
-            kV=1.28;
+
             encoder = new Motor(hardwareMap, "INTAKE", Motor.GoBILDA.BARE);
             launcher = new Motor(hardwareMap, "LANSATOR", Motor.GoBILDA.BARE);
-            launcher.encoder = encoder.encoder;
+            launcher2 = new Motor(hardwareMap, "LANSATOR2", Motor.GoBILDA.BARE);
+            launcher.encoder = launcher2.encoder;
+
             motorOne = launcher.motor;
+            motorTwo = launcher2.motor;
             launcher.setInverted(true);
+            launcher2.setInverted(false);
             launcher.setRunMode(Motor.RunMode.VelocityControl);
+            launcher2.setRunMode(Motor.RunMode.VelocityControl);
             voltage = hardwareMap.voltageSensor.iterator().next();
 
         }
@@ -64,7 +73,7 @@ public class Launcher implements IStateBasedModule, IRobotModule {
     }
 
     public double getAmps(){
-        return ((DcMotorEx) motorOne).getCurrent(CurrentUnit.AMPS);    }
+        return ((DcMotorEx) motorTwo).getCurrent(CurrentUnit.AMPS);    }
     public void setAuto(double auto) {
         autopose = -auto;
     }
@@ -90,11 +99,11 @@ public class Launcher implements IStateBasedModule, IRobotModule {
     }
 
     public double getCurrentPosition() {
-        return motorOne.getCurrentPosition();
+        return motorTwo.getCurrentPosition();
     }
 
     public double getRealCurrentPosition() {
-        return motorOne.getCurrentPosition() / TICKS_PER_REV;
+        return motorTwo.getCurrentPosition() / TICKS_PER_REV;
     }
 
     public boolean atTarget() {
@@ -106,7 +115,7 @@ public class Launcher implements IStateBasedModule, IRobotModule {
     }
 
     public double Motorvel() {
-        return -Revolutions(launcher.encoder.getRawVelocity());
+        return -Revolutions(launcher2.encoder.getRawVelocity());
     }
 
     public State getState() {
@@ -174,14 +183,14 @@ public class Launcher implements IStateBasedModule, IRobotModule {
 
             case PID:
 
-                if (target != 0)
-                    actualKs = kf * 12.0 / voltage.getVoltage();
-                else
-                    actualKs = 0;
+                    actualKs = kf * 12.0 / voltage.getVoltage();actualKs = 0;
                 launcher.setVeloCoefficients(kP, kI, kD);
+                launcher2.setVeloCoefficients(kP, kI, kD);
 
                 launcher.setFeedforwardCoefficients(kS + actualKs, kV);
+                launcher2.setFeedforwardCoefficients(kS + actualKs, kV);
                 launcher.set(target);
+                launcher2.set(target);
 
 
 //                    Launcher.setMode(CoolMotor.RunMode.PID);

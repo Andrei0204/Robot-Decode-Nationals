@@ -34,13 +34,16 @@ import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.unghiman
 import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.unghipivot;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -53,7 +56,9 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Point;
 
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /*
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -68,31 +73,38 @@ import java.util.Locale;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
+@Config
 @TeleOp
 public class RobotKickred extends OpMode {
     DcMotor BL = null, BR = null, FR = null, FL = null;
-    DcMotor push;
+
     RoboModules modules;
     RobotControl control;
     double oldTime = 0;
-    public   double alpha = 0;
+    public double alpha = 0;
     double deltax = 0;
     double deltay = 0;
+    public static double distancemodifier = 1;
+    public static double distancemodifierfar = 2;
     public static double deltahhypot = 0;
     Point redGoal = new Point(136 * 2.54, -140 * 2.54);
     Point blueGoal = new Point(140 * 2.54, -2 * 2.54);
-    boolean isred=true;
+    boolean isred = true;
     GoBildaPinpointDriver odo = null;
-    Boolean odobased=true;
-    Boolean llbased=false;
+    Boolean odobased = false;
+    Boolean llbased = true;
     ElapsedTime movement;
     Limelight3A limelight;
-    LLResult result=null;
+    LLResult result = null;
+    Servo bec;
+    double color = 0;
+    double saw = 0;
+
     @Override
     public void init() {
 
 // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
-        telemetry= new MultipleTelemetry( telemetry, FtcDashboard.getInstance().getTelemetry());
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
 
         odo.setOffsets(54, -164.5, DistanceUnit.MM); //these are tuned for 3110-0002-0001 Product Insight #1
@@ -104,11 +116,10 @@ public class RobotKickred extends OpMode {
         BR = hardwareMap.get(DcMotor.class, "BR");
         FR = hardwareMap.get(DcMotor.class, "FR");
         FL = hardwareMap.get(DcMotor.class, "FL");
-        push = hardwareMap.get(DcMotor.class, "PUSH");
+        bec = hardwareMap.get(Servo.class, "BEC");
 
         modules = new RoboModules(hardwareMap);
         control = new RobotControl(gamepad1, gamepad2, modules);
-        push.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
         BL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -138,12 +149,12 @@ public class RobotKickred extends OpMode {
 
     @Override
     public void init_loop() {
-        if(gamepad2.a) {
-            odo.setPosition(new Pose2D(DistanceUnit.CM, -157, -21, AngleUnit.RADIANS, 0));
+        if (gamepad2.a) {
+            odo.setPosition(new Pose2D(DistanceUnit.CM, 21, -157, AngleUnit.RADIANS, 0));
             modules.launcher.turret.turret.resetEncoder();
         }
-        if(gamepad2.dpad_down)
-            odo.setPosition(new Pose2D(DistanceUnit.CM,Position.getPose().getX(),Position.getPose().getY()+10,AngleUnit.RADIANS,Position.getPose().getHeading()));
+        if (gamepad2.dpad_down)
+            odo.setPosition(new Pose2D(DistanceUnit.CM, Position.getPose().getX(), Position.getPose().getY() + 10, AngleUnit.RADIANS, Position.getPose().getHeading()));
 
     }
 
@@ -155,9 +166,8 @@ public class RobotKickred extends OpMode {
     /*
      * Code to run REPEATEDLY after the driver hits START but before they hit STOP
      */
-    public double normalizaion(double angle)
-    {
-        return (angle +Math.PI) %(2*Math.PI) -Math.PI;
+    public double normalizaion(double angle) {
+        return (angle + Math.PI) % (2 * Math.PI) - Math.PI;
     }
 
 
@@ -166,88 +176,146 @@ public class RobotKickred extends OpMode {
         odo.update();
         Pose2D pos = odo.getPosition();
         control.update();
-        double x =-gamepad1.left_stick_x; // Remember, Y stick is reversed!
+        double x = -gamepad1.left_stick_x; // Remember, Y stick is reversed!
         double y = -gamepad1.left_stick_y;
         double rx = -gamepad1.right_stick_x;
         double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
-        FL.setPower((y + x + rx)/denominator);
-        FR.setPower((y - x - rx)/denominator);
-        BL.setPower((y - x + rx)/denominator);
-        BR.setPower((y + x - rx)/denominator);
+        FL.setPower((y + x + rx) / denominator);
+        FR.setPower((y - x - rx) / denominator);
+        BL.setPower((y - x + rx) / denominator);
+        BR.setPower((y + x - rx) / denominator);
 
 
 //        push.setPower(-0.01);
-        if(gamepad1.dpad_right)
-            isred=true;
-        if(gamepad2.dpad_up) {
+        if (gamepad1.dpad_right)
+            isred = true;
+        if (gamepad2.dpad_up) {
             odo.setPosition(new Pose2D(DistanceUnit.CM, 154, -154, AngleUnit.RADIANS, 0));
-            unghimanual=0;
-            unghipivot=0;
-        }if(isred) {
+            unghimanual = 0;
+            unghipivot = 0;
+        }
+        if (isred) {
             deltax = +pos.getX(DistanceUnit.CM) - redGoal.x;
             deltay = -pos.getY(DistanceUnit.CM) + redGoal.y;
-        }else
-        {
+        } else {
             deltax = +pos.getX(DistanceUnit.CM) - blueGoal.x;
             deltay = -pos.getY(DistanceUnit.CM) + blueGoal.y;
         }
-        deltahhypot= Math.hypot(deltay,deltax);
-        double impartire =deltay/deltax;
+        deltahhypot = Math.hypot(deltay, deltax);
+        double impartire = deltay / deltax;
         alpha = -Math.atan(impartire);
 
-        double anglelocal =  pos.getHeading(AngleUnit.RADIANS)-alpha ;
-        double anglenorm = -Math.toDegrees(normalizaion(anglelocal) );
-        if(anglenorm<=-140)
-            anglenorm +=360;
+        double anglelocal = pos.getHeading(AngleUnit.RADIANS) - alpha;
+        double anglenorm = -Math.toDegrees(normalizaion(anglelocal));
+        if (anglenorm <= -140)
+            anglenorm += 360;
 
 
-        if(odobased)
-            modules.launcher.turret.setAuto((unghimanual+anglenorm)* TICKSDEG);
-        if(!odobased && !llbased)
-            modules.launcher.turret.setAuto(0* TICKSDEG);
-        if(llbased)
-        {
+        if (odobased)
+            modules.launcher.turret.setAuto((unghimanual + anglenorm) * TICKSDEG);
+        if (!odobased && !llbased)
+            modules.launcher.turret.setAuto(0 * TICKSDEG);
+        color = 0.555;
+        saw = 0;
+        if (llbased) {
+
             result = limelight.getLatestResult();
-            if (result.isValid() ) {
-                if( movement.milliseconds()>200 &&Math.abs(modules.launcher.turret.getCurrentPosition() - result.getTx() * TICKSDEG)/TICKSDEG >1)
-                { modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * TICKSDEG);
-                movement.reset();
+            if (result.isValid()) {
+                List<LLResultTypes.FiducialResult> detectorResults = result.getFiducialResults();
+
+                for (LLResultTypes.FiducialResult dr : detectorResults) {
+
+                    if (dr.getFiducialId() == 24) {
+                        saw = 1;
+                        if (deltax < -200) {
+                            if (Math.abs(dr.getTargetXDegrees() + distancemodifierfar) > 8) {
+                                color = 0.277;
+                            } else if (Math.abs(dr.getTargetXDegrees() + distancemodifierfar) > 4) {
+                                color = 0.33;
+                            } else {
+                                color = 0.5;
+                            }
+                            if (movement.milliseconds() > 150 && Math.abs(modules.launcher.turret.getCurrentPosition() - (dr.getTargetXDegrees() + distancemodifierfar) * TICKSDEG) / TICKSDEG > 1.3
+                            ) {
+                                modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - (dr.getTargetXDegrees() + distancemodifierfar) * TICKSDEG);
+                                movement.reset();
+                            }
+
+                        } else if (deltax < -70 && deltax < -150) {
+                            if (Math.abs(dr.getTargetXDegrees()) > 8) {
+                                color = 0.277;
+                            } else if (Math.abs(dr.getTargetXDegrees()) > 4) {
+                                color = 0.33;
+
+                            } else {
+                                color = 0.5;
+                            }
+
+
+                            if (movement.milliseconds() > 150 && Math.abs(modules.launcher.turret.getCurrentPosition() - dr.getTargetXDegrees() * TICKSDEG) / TICKSDEG > 1.3
+                            ) {
+                                modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - dr.getTargetXDegrees() * TICKSDEG);
+                                movement.reset();
+                            }
+                        } else {
+                            if (Math.abs(dr.getTargetXDegrees() - distancemodifier) > 8) {
+                                color = 0.277;
+                            } else if (Math.abs(dr.getTargetXDegrees() - distancemodifier) > 4) {
+                                color = 0.33;
+                            } else {
+                                color = 0.5;
+                            }
+                            if (movement.milliseconds() > 150 && Math.abs(modules.launcher.turret.getCurrentPosition() - (dr.getTargetXDegrees() - distancemodifier) * TICKSDEG) / TICKSDEG > 1.3
+                            ) {
+                                modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - (dr.getTargetXDegrees() - distancemodifier) * TICKSDEG);
+                                movement.reset();
+                            }
+                        }
+
+                    }
+
+
                 }
+
             }
+
+
         }
-        if(gamepad2.dpad_down) {
-            odobased = false;
-            llbased=false;
-        }
-//        if(gamepad2.dpad_right){
-//            odobased = false;
-//            llbased=true;
-//        }
-        if(gamepad2.dpad_left)
-        {
-            odobased = true;
-            llbased=false;
+        if (saw == 0 && movement.milliseconds() > 750) {
+            modules.launcher.turret.setAuto((unghimanual + anglenorm) * TICKSDEG);
         }
 
-        if(gamepad2.left_trigger>0.07)
-            push.setPower(-gamepad2.left_trigger);
-        if(gamepad2.left_bumper)
-            push.setPower(-0);
-        if(gamepad2.right_trigger>0.2)
-            push.setPower(gamepad2.right_trigger);
-        telemetry.addData("dx",deltax) ;
-        telemetry.addData("dy",deltay);
-        telemetry.addData("dh",Math.abs(deltahhypot));
+        bec.setPosition(color);
+        if (gamepad2.dpad_down) {
+            odobased = false;
+            llbased = false;
+        }
+        if (gamepad2.dpad_right) {
+            odobased = false;
+            llbased = true;
+        }
+        if (gamepad2.dpad_left) {
+            odobased = true;
+            llbased = false;
+        }
+
+        telemetry.addData("dx", deltax);
+        telemetry.addData("dy", deltay);
+        telemetry.addData("dh", Math.abs(deltahhypot));
 //        telemetry.addData("alpha",alpha);
 //        telemetry.addData("anglelocal",anglelocal);
 //        telemetry.addData("anglenorm",anglenorm);
 //        telemetry.addData("alphagrade",Math.toDegrees(alpha));
-        telemetry.addData("turret",modules.launcher.turret.getState());
-        telemetry.addData("turret",modules.launcher.turret.getTarget());
+        telemetry.addData("turret", modules.launcher.turret.getState());
+        telemetry.addData("turret", modules.launcher.turret.getTarget());
 //        telemetry.addData("push", push.getPower());
         telemetry.addData("push", modules.launcher.launcher.Motorvel());
         telemetry.addData("AMPS", modules.launcher.launcher.getAmps());
+        telemetry.addData("motor1", modules.launcher.launcher.launcher.getCorrectedVelocity());
+        telemetry.addData("motor2", modules.launcher.launcher.launcher2.getCorrectedVelocity());
         telemetry.addData("powerintake", modules.intake.intake.getPower());
+        telemetry.addData("powerintake", llbased);
+
 //        telemetry.addData("push", modules.launcher.pivot.getTarget());
         String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.CM), pos.getY(DistanceUnit.CM), pos.getHeading(AngleUnit.DEGREES));
         telemetry.addData("Position", data);
@@ -265,6 +333,7 @@ public class RobotKickred extends OpMode {
 
     @Override
     public void stop() {
+        bec.setPosition(0);
     }
 
 }

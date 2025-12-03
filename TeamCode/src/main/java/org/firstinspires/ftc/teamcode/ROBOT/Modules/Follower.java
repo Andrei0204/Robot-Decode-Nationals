@@ -27,7 +27,7 @@ public class Follower {
     CoolMotor frontLeft, frontRight, backLeft, backRight;
     boolean frontLeftMotorReversed , frontRightMotorReversed=true, backLeftMotorReversed , backRightMotorReversed=true;
     PIDController tpid = new PIDController(0,0,0), hpid = new PIDController(0,0,0);
-    public static double kp = 0.075, ki = 0.004, kd = 0.016     , kph = 1, kih = 0, kdh = 0.1;
+    public static double kp = 0.065, ki = 0.004, kd = 0.016     , kph = 1, kih = 0, kdh = 0.1;
     Vector power = new Vector(0,0);
     public static double velocityThreshold = 3.5 ;
     public static double lateralmultiplier = 1 ;

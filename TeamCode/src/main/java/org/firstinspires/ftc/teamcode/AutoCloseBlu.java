@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.ROBOT.Modules;
+package org.firstinspires.ftc.teamcode;
 /* Copyright (c) 2017 FIRST. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -30,6 +30,9 @@ package org.firstinspires.ftc.teamcode.ROBOT.Modules;
 
 
 import static org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret.TICKSDEG;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.closecounter;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.rpmclose;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.rpmclose2;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -45,11 +48,14 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.GoBildaPinpointDriver;
+import org.firstinspires.ftc.teamcode.ROBOT.Modules.Follower;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Intake.Intake;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Blocator.Blocator;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Launcher.Launcher;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Pivot.Pivot;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret;
+import org.firstinspires.ftc.teamcode.ROBOT.Modules.Position;
+import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Point;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Pose;
 
@@ -68,7 +74,7 @@ import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Pose;
  */
 @Autonomous
 @Config
-public class AutoCloseBlue2 extends OpMode {
+public class AutoCloseBlu extends OpMode {
     Position pose;
     boolean f = true, l = false;
     RoboModules modules;
@@ -82,11 +88,10 @@ public class AutoCloseBlue2 extends OpMode {
     int cases = 1;
     int throwtime = -1;
     public static double rpm = 0.51;
-    public static double angl = 0.5;
-    public static double repemekms = 0.52;
-    Limelight3A limelight;
-    LLResult result = null;
+    public static double angl = 3;
 
+    Limelight3A limelight;
+    LLResult result=null;
     @Override
     public void init() {
 
@@ -110,7 +115,7 @@ public class AutoCloseBlue2 extends OpMode {
 
         telemetry.setMsTransmissionInterval(11);
 
-        limelight.pipelineSwitch(0);
+        limelight.pipelineSwitch(1);
         limelight.start();
     }
 
@@ -137,32 +142,44 @@ public class AutoCloseBlue2 extends OpMode {
     public void loop() {
         modules.update();
         follower.update();
+        if(Launcher.getAutopose()!=0) {
+            if (modules.launcher.launcher.Motorvel() > closecounter + 2.1) {
+                modules.launcher.launcher.setAuto(closecounter / 100);
+            } else if (throwtime <= 0)
+                modules.launcher.launcher.setAuto(rpmclose);
+            else
+                modules.launcher.launcher.setAuto(rpmclose2);
+        }
         switch (cases) {
             case 1: //Gotoprelaunch
 
+                follower.overallmulti = 0.7;
                 modules.launcher.pivot.setState(Pivot.State.AUTO);
                 modules.launcher.launcher.setState(Launcher.State.TEST);
                 modules.launcher.turret.setState(Turret.State.TEST);
-                modules.launcher.launcher.setAuto(repemekms);
 
-                if (!follower.reachedTarget(6))
+
+                if(!follower.reachedTarget(6))
                     timer.reset();
-                follower.setTarget(new Pose(180, -130, Math.toRadians(41)));
-                modules.launcher.pivot.setangle(42.8);
+                follower.setTarget(new Pose(180, -130, Math.toRadians(35)));
+
+                modules.launcher.pivot.setangle(40.5);
                 if (follower.localization.getX() < 290) {
                     modules.launcher.turret.setAuto((angl + 1) * TICKSDEG);
-
-
                 }
-                if (follower.reachedTarget(6)) {
-                    result = limelight.getLatestResult();
-                    if (result.isValid() && movement.milliseconds() > 200) {
-                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * TICKSDEG);
-                        movement.reset();
+                if (follower.localization.getX() < 220) {
+                    modules.launcher.launcher.setAuto(rpmclose);
+                }
 
+
+                if(follower.reachedTarget(10)) {
+                    result = limelight.getLatestResult();
+                    if (result.isValid() &&movement.milliseconds()>0) {
+                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
+                        movement.reset();
                     }
                 }
-                if (follower.reachedTarget(6) && (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3 || timer.milliseconds() > 800)) {
+                if (follower.reachedTargetAndStopped(6) && (modules.launcher.launcher.Motorvel() > closecounter || timer. milliseconds()>5000) ){
                     timer.reset();
                     cases = 2;
                     throwtime = -1;
@@ -172,52 +189,60 @@ public class AutoCloseBlue2 extends OpMode {
                 }
                 break;
             case 2: //launch pre
+                follower.overallmulti = 1   ;
                 result = limelight.getLatestResult();
-                if (result.isValid() && movement.milliseconds() > 200) {
-                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * TICKSDEG);
+                if (result.isValid() &&movement.milliseconds()>0) {
+                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
                     movement.reset();
+
                 }
                 modules.intake.setState(Intake.State.MANUAL);
 
                 if (throwtime == -1) {
-
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     throwtime++;
                     timer.reset();
+
                 }
-                if (timer.milliseconds() > 100 && throwtime == 0) {
-                    modules.launcher.pivot.setangle(42.4);
+                if (timer.milliseconds() > 125 && throwtime == 0) {
+                    modules.launcher.launcher.setAuto(rpmclose2);
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
+                    throwtime++;
+                    timer.reset();
+
+                }
+
+                if (timer.milliseconds() > 170 && throwtime == 1) {
+                    modules.intake.setManualPower(0);
+                }
+                if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > closecounter && timer.milliseconds() > 200)) && throwtime == 1) {
 
                     throwtime++;
-                    timer.reset();
-                }
-                if ((timer.milliseconds() > 550 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 4 && timer.milliseconds() > 300)) && throwtime == 1) {
-                    throwtime++;
+                    modules.intake.setManualPower(1);
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     timer.reset();
+
                 }
-                if (timer.milliseconds() > 120 && throwtime == 2) {
+                if (timer.milliseconds() > 200 && throwtime == 2) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                    modules.launcher.pivot.setangle(42.4);
-                    modules.intake.setManualPower(0.7);
-
-
                     throwtime++;
                     timer.reset();
+
                 }
-                if ((timer.milliseconds() > 550 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3 && timer.milliseconds() > 200)) && throwtime == 3) {
+                if (timer.milliseconds() > 170 && throwtime == 3) {
+                    modules.intake.setManualPower(0);
+                }
+                if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > closecounter && timer.milliseconds() > 200)) && throwtime == 3) {
+                    modules.intake.setManualPower(1);
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     throwtime++;
                     timer.reset();
+
                 }
-                if (timer.milliseconds() > 800 && throwtime == 4) {
-                    throwtime = -1;
-
-
+                if (timer.milliseconds() > 300 && throwtime == 4) {
+                    throwtime = -2;
                     timer.reset();
-                    cases = 3;
-
+                    cases=3;
                 }
                 break;
             case 3: //collect first
@@ -226,16 +251,18 @@ public class AutoCloseBlue2 extends OpMode {
                 modules.intake.setManualPower(1);
                 modules.launcher.blocator.setState(Blocator.State.CLOSE);
 
-                follower.setTarget(new Pose(187, -32.5, Math.toRadians(90)));
+                follower.setTarget(new Pose(187, -31, Math.toRadians(90)));
+
                 follower.overallmulti = 0.42;
-                if (follower.reachedTarget(5) || timer.milliseconds()>2500) {
+                if (follower.reachedTarget(5)|| timer.milliseconds()>2500) {
                     modules.launcher.turret.setAuto((angl - 5.5) * TICKSDEG);
                     cases = -3;
                     follower.overallmulti = 1;
 
-                    modules.launcher.launcher.setAuto(repemekms);
-                    follower.setTarget(new Pose(166, -23.5, Math.toRadians(-30)));
-                    modules.launcher.pivot.setangle(42.3);
+                    modules.launcher.launcher.setAuto(rpmclose);
+                    follower.setTarget(new Pose(166 , -23.5, Math.toRadians(-30)));
+
+
                     modules.intake.setManualPower(0);
                     movement.reset();
                 }
@@ -243,20 +270,22 @@ public class AutoCloseBlue2 extends OpMode {
             case -3:
                 if ((follower.reachedHeading(Math.toRadians(5)) && follower.reachedHeading(4)) || movement.milliseconds() > 700) {
                     cases = 4;
-                    follower.setTarget(new Pose(186, -140, Math.toRadians(41)));
+                    timer.reset();
+                    follower.setTarget(new Pose(180, -140, Math.toRadians(35)));
+
                 }
                 break;
             case 4:
-                if (follower.reachedTarget(10)) {
+                if(follower.reachedTarget(10)) {
                     result = limelight.getLatestResult();
-                    if (result.isValid() && movement.milliseconds() > 200) {
-                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * TICKSDEG);
+                    if (result.isValid() &&movement.milliseconds()>0) {
+                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
                         movement.reset();
 
                     }
 
                 }
-                if (follower.reachedTargetAndStopped(6)) {
+                if (follower.reachedTargetAndStopped(6) && (modules.launcher.launcher.Motorvel() > closecounter || timer. milliseconds()>3500)) {
                     cases = 5;
                     modules.intake.setManualPower(1);
                     throwtime = -1;
@@ -265,83 +294,101 @@ public class AutoCloseBlue2 extends OpMode {
                 break;
             case 5: //throw first
                 result = limelight.getLatestResult();
-                if (result.isValid() && movement.milliseconds() > 200) {
-                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * TICKSDEG);
+                if (result.isValid() &&movement.milliseconds()>0) {
+                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
                     movement.reset();
+
                 }
                 modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * TICKSDEG);
+
                 modules.intake.setState(Intake.State.MANUAL);
 
                 if (throwtime == -1) {
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     throwtime++;
                     timer.reset();
+
                 }
-                if (timer.milliseconds() > 100 && throwtime == 0) {
+                if (timer.milliseconds() > 125 && throwtime == 0) {
+                    modules.launcher.launcher.setAuto(rpmclose2);
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                    modules.launcher.pivot.setangle(42);
+                    throwtime++;
+                    timer.reset();
+
+                }
+
+                if (timer.milliseconds() > 170 && throwtime == 1) {
+                    modules.intake.setManualPower(0);
+                }
+                if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > closecounter && timer.milliseconds() > 200)) && throwtime == 1) {
 
                     throwtime++;
-                    timer.reset();
-                }
-                if ((timer.milliseconds() > 550 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 4 && timer.milliseconds() > 300)) && throwtime == 1) {
-                    throwtime++;
+                    modules.intake.setManualPower(1);
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     timer.reset();
-                }
-                if (timer.milliseconds() > 120 && throwtime == 2) {
-                    modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                    modules.intake.setManualPower(0.8);
-                    modules.launcher.pivot.setangle(42);
-                    throwtime++;
-                    timer.reset();
-                }
-                if ((timer.milliseconds() > 550 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3 && timer.milliseconds() > 150)) && throwtime == 3) {
-                    modules.launcher.blocator.setState(Blocator.State.OPEN);
-                    throwtime++;
-                    timer.reset();
-                }
-                if (timer.milliseconds() > 800 && throwtime == 4) {
-                    throwtime = -1;
 
+                }
+                if (timer.milliseconds() > 200 && throwtime == 2) {
+                    modules.launcher.blocator.setState(Blocator.State.CLOSE);
+                    throwtime++;
                     timer.reset();
-                    cases = 6;
+
+                }
+                if (timer.milliseconds() > 170 && throwtime == 3) {
+                    modules.intake.setManualPower(0);
+                }
+                if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > closecounter && timer.milliseconds() > 200)) && throwtime == 3) {
+                    modules.intake.setManualPower(1);
+                    modules.launcher.blocator.setState(Blocator.State.OPEN);
+                    throwtime++;
+                    timer.reset();
+
+                }
+                if (timer.milliseconds() > 300 && throwtime == 4) {
+                    throwtime = -2;
+                    timer.reset();
+                    cases=6;
                 }
                 break;
             case 6: //gotosec
 
                 modules.launcher.launcher.setAuto(0);
-                follower.setTarget(new Pose(120, -90, Math.toRadians(90)));
+                follower.setTarget(new Pose(120, -80, Math.toRadians(90)));
+
                 if (follower.reachedTarget(8)) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     follower.setTarget(new Pose(120, -25, Math.toRadians(90)));
+
                     follower.overallmulti = 0.35;
                     cases = 7;
                 }
                 break;
             case 7: //colect sec
-                if (follower.reachedTarget(6)) {
-                    modules.launcher.turret.setAuto((angl) * TICKSDEG);
-
+                if (follower.reachedTarget(5.5)) {
+                    modules.launcher.turret.setAuto((angl ) * TICKSDEG);
+                    modules.intake.setManualPower(0.6);
                     follower.overallmulti = 1;
 
-                    modules.launcher.launcher.setAuto(repemekms + 0.0);
-                    follower.setTarget(new Pose(188, -140, Math.toRadians(41)));
-                    modules.launcher.pivot.setangle(40.2);
+                    modules.launcher.launcher.setAuto(rpmclose + 0.0);
+                    follower.setTarget(new Pose(180, -140, Math.toRadians(35)));
+
+
+
                     cases = 8;
+                    timer.reset();
                 }
                 break;
             case 8:
-                if (follower.reachedTarget(10)) {
+                if(follower.reachedTarget(10)) {
                     result = limelight.getLatestResult();
-                    if (result.isValid() && movement.milliseconds() > 200) {
-                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * TICKSDEG);
+                    if (result.isValid() &&movement.milliseconds()>0) {
+                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
                         movement.reset();
 
                     }
 
                 }
-                if (follower.reachedTargetAndStopped(6)) {
+                if (follower.reachedTargetAndStopped(6)&& (modules.launcher.launcher.Motorvel() > closecounter || timer. milliseconds()>3500)) {
                     modules.intake.setManualPower(1);
                     cases = 9;
                     throwtime = -1;
@@ -350,82 +397,101 @@ public class AutoCloseBlue2 extends OpMode {
                 break;
             case 9: //launchsec
                 result = limelight.getLatestResult();
-                if (result.isValid() && movement.milliseconds() > 200) {
-                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * TICKSDEG);
+                if (result.isValid() &&movement.milliseconds()>0) {
+                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
                     movement.reset();
+
                 }
+                modules.intake.setState(Intake.State.MANUAL);
+
+
                 modules.intake.setState(Intake.State.MANUAL);
 
                 if (throwtime == -1) {
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     throwtime++;
                     timer.reset();
+
                 }
-                if (timer.milliseconds() > 100 && throwtime == 0) {
+                if (timer.milliseconds() > 125 && throwtime == 0) {
+                    modules.launcher.launcher.setAuto(rpmclose2);
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                    modules.launcher.pivot.setangle(42.5);
                     throwtime++;
                     timer.reset();
-                }
-                if ((timer.milliseconds() > 550 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 4 && timer.milliseconds() > 250)) && throwtime == 1) {
-                    throwtime++;
-                    modules.launcher.blocator.setState(Blocator.State.OPEN);
 
-                    timer.reset();
                 }
-                if (timer.milliseconds() > 120 && throwtime == 2) {
+
+                if (timer.milliseconds() > 170 && throwtime == 1) {
+                    modules.intake.setManualPower(0);
+                }
+                if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > closecounter && timer.milliseconds() > 200)) && throwtime == 1) {
+
+                    throwtime++;
+                    modules.intake.setManualPower(1);
+                    modules.launcher.blocator.setState(Blocator.State.OPEN);
+                    timer.reset();
+
+                }
+                if (timer.milliseconds() > 200 && throwtime == 2) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                    modules.launcher.pivot.setangle(42.5);
                     throwtime++;
-
-                    modules.intake.setManualPower(0.8);
                     timer.reset();
+
                 }
-                if ((timer.milliseconds() > 550 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 2 && timer.milliseconds() > 200)) && throwtime == 3) {
+                if (timer.milliseconds() > 170 && throwtime == 3) {
+                    modules.intake.setManualPower(0);
+                }
+                if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > closecounter && timer.milliseconds() > 200)) && throwtime == 3) {
+                    modules.intake.setManualPower(1);
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     throwtime++;
                     timer.reset();
+
                 }
-                if (timer.milliseconds() > 500 && throwtime == 4) {
-                    throwtime = -1;
-
+                if (timer.milliseconds() > 300 && throwtime == 4) {
+                    throwtime = -2;
                     timer.reset();
-                    cases = 10;
-
+                    cases=10;
                 }
                 break;
             case 10: //gotothird
                 modules.launcher.launcher.setAuto(0);
-                follower.setTarget(new Pose(60, -90, Math.toRadians(90)));
+                follower.setTarget(new Pose(60, -80, Math.toRadians(90)));
+
                 if (follower.reachedTarget(8)) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                    follower.setTarget(new Pose(60, -20, Math.toRadians(90)));
+                    follower.setTarget(new Pose(60, -16.5, Math.toRadians(90)));
+
                     follower.overallmulti = 0.4;
                     cases = 11;
                 }
                 break;
             case 11: //colect third
-                if (follower.reachedTarget(6)) {
+                if (follower.reachedTarget(5.5)) {
 
                     modules.intake.setManualPower(0);
                     follower.overallmulti = 1;
                     modules.launcher.turret.setAuto((angl - 4) * TICKSDEG);
-                    modules.launcher.launcher.setAuto(repemekms + 0.0);
-                    follower.setTarget(new Pose(186, -146, Math.toRadians(41)));
-                    modules.launcher.pivot.setangle(43);
+                    modules.launcher.launcher.setAuto(rpmclose + 0.0);
+                    follower.setTarget(new Pose(180, -140, Math.toRadians(35)));
+
+
+                    timer.reset();
+
                     cases = 12;
                 }
                 break;
             case 12:
-                if (follower.reachedTarget(10)) {
+                if(follower.reachedTarget(10)) {
                     result = limelight.getLatestResult();
-                    if (result.isValid() && movement.milliseconds() > 200) {
-                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - (result.getTx() - 3.5) * TICKSDEG);
+                    if (result.isValid() &&movement.milliseconds()>0) {
+                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
                         movement.reset();
+
                     }
 
                 }
-                if (follower.reachedTargetAndStopped(6)) {
+                if (follower.reachedTargetAndStopped(6)&& (modules.launcher.launcher.Motorvel() > closecounter || timer. milliseconds()>6000)) {
                     cases = 13;
                     throwtime = -1;
                     timer.reset();
@@ -435,50 +501,65 @@ public class AutoCloseBlue2 extends OpMode {
 
             case 13: //launchthird
                 result = limelight.getLatestResult();
-                if (result.isValid() && movement.milliseconds() > 200) {
-                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - (result.getTx() - 3.5) * TICKSDEG);
+                if (result.isValid() &&movement.milliseconds()>0) {
+                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
                     movement.reset();
+
                 }
+
                 modules.intake.setState(Intake.State.MANUAL);
-                modules.intake.setState(Intake.State.MANUAL);
-                modules.intake.setManualPower(1);
+
                 if (throwtime == -1) {
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     throwtime++;
                     timer.reset();
-                }
-                if (timer.milliseconds() > 100 && throwtime == 0) {
-                    modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                    modules.launcher.pivot.setangle(43.3);
-                    throwtime++;
-                    timer.reset();
-                }
-                if ((timer.milliseconds() > 550 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3.2 && timer.milliseconds() > 200)) && throwtime == 1) {
-                    throwtime++;
-                    modules.launcher.blocator.setState(Blocator.State.OPEN);
-                    timer.reset();
-                }
-                if (timer.milliseconds() > 120 && throwtime == 2) {
-                    modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                    modules.launcher.pivot.setangle(43.3);
-                    modules.intake.setManualPower(0.6);
-                    throwtime++;
-                    timer.reset();
-                }
-                if ((timer.milliseconds() > 550 || (modules.launcher.launcher.Motorvel() > repemekms * 100 - 3.8 && timer.milliseconds() > 150)) && throwtime == 3) {
-                    modules.launcher.blocator.setState(Blocator.State.OPEN);
-                    throwtime++;
-                    timer.reset();
-                }
-                if (timer.milliseconds() > 500 && throwtime == 4) {
-                    throwtime = -1;
 
+                }
+                if (timer.milliseconds() > 125 && throwtime == 0) {
+                    modules.launcher.launcher.setAuto(rpmclose2);
+                    modules.launcher.blocator.setState(Blocator.State.CLOSE);
+                    throwtime++;
                     timer.reset();
-                    cases = 14;
+
+                }
+
+                if (timer.milliseconds() > 170 && throwtime == 1) {
+                    modules.intake.setManualPower(0);
+                }
+                if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > closecounter && timer.milliseconds() > 200)) && throwtime == 1) {
+
+                    throwtime++;
+                    modules.intake.setManualPower(1);
+                    modules.launcher.blocator.setState(Blocator.State.OPEN);
+                    timer.reset();
+
+                }
+                if (timer.milliseconds() > 200 && throwtime == 2) {
+                    modules.launcher.blocator.setState(Blocator.State.CLOSE);
+                    throwtime++;
+                    timer.reset();
+
+                }
+                if (timer.milliseconds() > 170 && throwtime == 3) {
+                    modules.intake.setManualPower(0);
+                }
+                if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > closecounter && timer.milliseconds() > 200)) && throwtime == 3) {
+                    modules.intake.setManualPower(1);
+                    modules.launcher.blocator.setState(Blocator.State.OPEN);
+                    throwtime++;
+                    timer.reset();
+
+                }
+                if (timer.milliseconds() > 300 && throwtime == 4) {
+                    throwtime = -2;
+                    timer.reset();
+                    cases=14;
                 }
                 break;
             case 14:
-                follower.setTarget(new Pose(186, -50, Math.toRadians(90)));
+                modules.launcher.launcher.setAuto(0);
+                modules.intake.setManualPower(0);
+                follower.setTarget(new Pose(158 , -90 , Math.toRadians(90)));
                 cases = 15;
                 break;
 

@@ -13,7 +13,7 @@
     public class Turret implements IStateBasedModule, IRobotModule {
 
 
-        public static final double TICKS435 = 384.5;    //test
+        public static final double TICKS435 = 145.1;    //test
         public static final double TURTICKS = TICKS435 *8.6;    //test
         public static double TICKSDEG = TURTICKS/360;
 
@@ -22,7 +22,7 @@
         public static double autopose = 0;
         public static double target = 0; //cm
         public static double currentPosition = startpos;
-        public  static double kP = 0.007, kI = 0.0007, kD = 0.00015; //TODO Valori PID!!!!
+        public  static double kP = 0.015, kI = 0.1, kD = 0.001; //TODO Valori PID!!!!
 
         private static boolean ENABLED = true;
         public CoolMotor turret = null;

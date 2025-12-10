@@ -26,9 +26,8 @@ public class Launcher implements IStateBasedModule, IRobotModule {
     public static double autopose = 0;
     public static double target = 0; //cm
     public static double currentPosition = startpos;
-    public static double kP = 0.45, kI = 0, kD = 0.00, kf = 0; //TODO Valori PID!!!!
-    public static double kS = 300, kV = 1.16
-            ; //TODO Valori PID!!!!
+    public static double kP = 0.1, kI = 0, kD = 0.00, kf = 0; //TODO Valori PID!!!!
+    public static double kS = 300, kV = 1.3;
 
     private static boolean ENABLED = true;
 
@@ -76,6 +75,10 @@ public     DcMotor motorOne;
         return ((DcMotorEx) motorTwo).getCurrent(CurrentUnit.AMPS);    }
     public void setAuto(double auto) {
         autopose = -auto;
+    }
+
+    public static double getAutopose() {
+        return autopose;
     }
 
     public void setManualPower(double power) {
@@ -175,15 +178,13 @@ public     DcMotor motorOne;
 
     @Override
     public void updateHardware() {
-//            double actualKs = f * 12.0 / voltage.getVoltage();
-//            pid = new PIDCoefficients(kP, kI, kD);
+
 
         switch (runMode) {
 
 
             case PID:
 
-                    actualKs = kf * 12.0 / voltage.getVoltage();actualKs = 0;
                 launcher.setVeloCoefficients(kP, kI, kD);
                 launcher2.setVeloCoefficients(kP, kI, kD);
 
@@ -193,22 +194,15 @@ public     DcMotor motorOne;
                 launcher2.set(target);
 
 
-//                    Launcher.setMode(CoolMotor.RunMode.PID);
-//                    Launcher.setPIDF(pid, actualKs);
-//                    Launcher.calculatePowerFF(Motorvel(), target);
                 break;
             case MANUAL: {
 
-//                    Launcher.setMode(CoolMotor.RunMode.RUN);
-//
-//                    Launcher.setPower(manualPower);
                 break;
             }
         }
 
 
         currentPosition = Motorvel() / TICKS_PER_REV;
-//            Launcher.update();
 
     }
 

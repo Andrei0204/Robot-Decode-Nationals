@@ -30,18 +30,21 @@ package org.firstinspires.ftc.teamcode.ROBOT;
 
 
 import static org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret.TICKSDEG;
-import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.angleconstantfar;
-import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.constant;
-import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.launchfailsafe;
-import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.multfar;
-import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.multpiv;
-import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.termenliberfar;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.closecounter;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.distance;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.farcounter;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.rpmclose;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.rpmclose2;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.rpmfar;
+import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.rpmfar2;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
+import com.arcrobotics.ftclib.util.InterpLUT;
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -61,6 +64,9 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.Position;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Point;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Pose;
+import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Vector;
+
+import java.util.List;
 
 /*
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -92,13 +98,19 @@ public class AutoFarRed extends OpMode {
     int throwtime = -1;
     public static double rpm = 0.51;
     public static double angl = 45.5;
-    public static double repemekms = 0.52;
+    public static double kppeleme = 0.35;
     Limelight3A limelight;
     LLResult result=null;
+    InterpLUT far = new InterpLUT();
     @Override
     public void init() {
 
 
+        far.add(270, 52);
+        far.add(300, 52);
+        far.add(330, 50);
+        far.add(360, 49);
+        far.createLUT();
 // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
@@ -141,32 +153,45 @@ public class AutoFarRed extends OpMode {
      * Code to run REPEATEDLY after the driver hits START but before they hit STOP
      */
 
+    public void LL() {
+        result = limelight.getLatestResult();
+        if (result.isValid()) {
+            List<LLResultTypes.FiducialResult> detectorResults = result.getFiducialResults();
+            for (LLResultTypes.FiducialResult dr : detectorResults) {
+                if (dr.getFiducialId() == 24) {
+                    Vector distances = new Vector(dr.getRobotPoseTargetSpace().getPosition().x, dr.getRobotPoseTargetSpace().getPosition().z);
+
+                    distance = distances.getMagnitude() * 100;
+                    if (movement.milliseconds() > 0 && Math.abs(modules.launcher.turret.getCurrentPosition() - dr.getTargetXDegrees() * TICKSDEG) / TICKSDEG > 1
+                    ) {
+                        double heading_error = dr.getTargetXDegrees();
+                        double goodpower = heading_error * kppeleme;
+                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - goodpower * TICKSDEG);
+                        movement.reset();
+                    }
+                }
+            }
+        }
+    }
     @Override
     public void loop() {
         modules.update();
         follower.update();
         switch (cases) {
             case 1: //Gotoprelaunch
-
+                LL();
                 modules.launcher.pivot.setState(Pivot.State.AUTO);
                 modules.launcher.launcher.setState(Launcher.State.TEST);
                 modules.launcher.turret.setState(Turret.State.TEST);
-                modules.launcher.launcher.setAuto(340.0 / 360 * multfar + constant);
+                modules.launcher.launcher.setAuto(rpmfar);
                 modules.intake.setState(Intake.State.MANUAL);
                 if(!follower.reachedTarget(6))
                     timer.reset();
-                follower.setTarget(new Pose(42, -180, Math.toRadians(-25)));
-                modules.launcher.turret.setAuto(0);
+                follower.setTarget(new Pose(42, -180, Math.toRadians(-30)));
 
 
-                if (modules.launcher.launcher.Motorvel() > 42) {
-                    if (Math.abs(modules.launcher.pivot.getCurrentPosition() - multpiv * modules.launcher.launcher.Motorvel() - termenliberfar) > 0.03 && modules.launcher.launcher.getAmps() < 1.5)
-                        modules.launcher.pivot.setangle(multpiv * modules.launcher.launcher.Motorvel() - termenliberfar);
-                }
-                else
-                    modules.launcher.pivot.setangle(angleconstantfar);
 
-                if (follower.reachedTarget(6) &&(modules.launcher.launcher.Motorvel() > launchfailsafe * 100 - 1 ||  timer.milliseconds() > 4000)){
+                if (follower.reachedTargetAndStopped(6) &&(modules.launcher.launcher.Motorvel() > farcounter ||  timer.milliseconds() > 4000)){
                     timer.reset();
                     cases = 2;
                     throwtime = -1;
@@ -176,62 +201,61 @@ public class AutoFarRed extends OpMode {
                 }
                 break;
             case 2: //launch pre
-                if (modules.launcher.launcher.Motorvel() > 42) {
-                    if (Math.abs(modules.launcher.pivot.getCurrentPosition() - multpiv * modules.launcher.launcher.Motorvel() - termenliberfar) > 0.03 && modules.launcher.launcher.getAmps() < 1.5)
-                        modules.launcher.pivot.setangle(multpiv * modules.launcher.launcher.Motorvel() - termenliberfar);
-                }
-                else
-                    modules.launcher.pivot.setangle(angleconstantfar);
+                LL();
                 if (throwtime >= -1) {
 
                     if (throwtime == -1) {
                         modules.launcher.blocator.setState(Blocator.State.OPEN);
                         throwtime++;
                         timer.reset();
-                    }
-                    if (timer.milliseconds() > 110 && throwtime == 0) {
 
+                    }
+                    if (timer.milliseconds() > 125 && throwtime == 0) {
+                        modules.launcher.launcher.setAuto(rpmfar2);
                         modules.launcher.blocator.setState(Blocator.State.CLOSE);
                         throwtime++;
                         timer.reset();
+
                     }
-                    if (timer.milliseconds() > 300 && throwtime == 1) {
+
+                    if (timer.milliseconds() > 170 && throwtime == 1) {
                         modules.intake.setManualPower(0);
                     }
-                    if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > launchfailsafe * 100 - 1 && timer.milliseconds() > 250)) && throwtime == 1) {
+                    if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > farcounter && timer.milliseconds() > 200)) && throwtime == 1) {
+
                         throwtime++;
                         modules.intake.setManualPower(1);
                         modules.launcher.blocator.setState(Blocator.State.OPEN);
                         timer.reset();
 
                     }
-                    if (timer.milliseconds() > 110 && throwtime == 2) {
+                    if (timer.milliseconds() > 200 && throwtime == 2) {
                         modules.launcher.blocator.setState(Blocator.State.CLOSE);
                         throwtime++;
                         timer.reset();
 
                     }
-                    if (timer.milliseconds() > 350 && throwtime == 3) {
+                    if (timer.milliseconds() > 170 && throwtime == 3) {
                         modules.intake.setManualPower(0);
                     }
-                    if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > launchfailsafe * 100 - 1 && timer.milliseconds() > 250)) && throwtime == 3) {
+                    if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > farcounter && timer.milliseconds() > 200)) && throwtime == 3) {
                         modules.intake.setManualPower(1);
                         modules.launcher.blocator.setState(Blocator.State.OPEN);
                         throwtime++;
                         timer.reset();
 
                     }
-                    if (timer.milliseconds() > 700 && throwtime == 4) {
+                    if (timer.milliseconds() > 300 && throwtime == 4) {
                         throwtime = -2;
+                        cases=3;
                         timer.reset();
-                        cases = 3;
                     }
                 }
 
 
                 break;
             case 3: //collect first
-
+                modules.launcher.turret.setAuto(0);
                 follower.setTarget(new Pose(54, -298, Math.toRadians(-118)));
                 modules.intake.setManualPower(1);
                 modules.launcher.launcher.setAuto(0);
@@ -249,6 +273,7 @@ public class AutoFarRed extends OpMode {
                     cases=5;
                     modules.intake.setManualPower(0);
                     follower.setTarget(new Pose(42, -180, Math.toRadians(-25)));
+                    modules.launcher.launcher.setAuto(rpmfar);
                 }
                 break;
             case 5:
@@ -256,20 +281,16 @@ public class AutoFarRed extends OpMode {
                 modules.launcher.pivot.setState(Pivot.State.AUTO);
                 modules.launcher.launcher.setState(Launcher.State.TEST);
                 modules.launcher.turret.setState(Turret.State.TEST);
-                modules.launcher.launcher.setAuto(340.0 / 360 * multfar + constant);
+
                 modules.intake.setState(Intake.State.MANUAL);
                 if(!follower.reachedTarget(6))
                     timer.reset();
-                modules.launcher.turret.setAuto(0);
-
-                if (modules.launcher.launcher.Motorvel() > 42) {
-                    if (Math.abs(modules.launcher.pivot.getCurrentPosition() - multpiv * modules.launcher.launcher.Motorvel() - termenliberfar) > 0.03 && modules.launcher.launcher.getAmps() < 1.5)
-                        modules.launcher.pivot.setangle(multpiv * modules.launcher.launcher.Motorvel() - termenliberfar);
-                }
+                if(!follower.reachedHeading(Math.toRadians(10)))
+                    modules.launcher.turret.setAuto(0);
                 else
-                    modules.launcher.pivot.setangle(angleconstantfar);
+                    LL();
 
-                if (follower.reachedTarget(6)  && follower.reachedHeading(Math.toRadians(7))&&(modules.launcher.launcher.Motorvel() > launchfailsafe * 100 - 1 ||  timer.milliseconds() > 4000)){
+                if (follower.reachedTargetAndStopped(6)  && follower.reachedHeading(Math.toRadians(7))&&(modules.launcher.launcher.Motorvel() > farcounter ||  timer.milliseconds() > 4000)){
                     timer.reset();
                     cases = 6;
                     throwtime = -1;
@@ -278,56 +299,56 @@ public class AutoFarRed extends OpMode {
                 }
                 break;
             case 6:
-                if (modules.launcher.launcher.Motorvel() > 42) {
-                    if (Math.abs(modules.launcher.pivot.getCurrentPosition() - multpiv * modules.launcher.launcher.Motorvel() - termenliberfar) > 0.03 && modules.launcher.launcher.getAmps() < 1.5)
-                        modules.launcher.pivot.setangle(multpiv * modules.launcher.launcher.Motorvel() - termenliberfar);
-                }
-                else
-                    modules.launcher.pivot.setangle(angleconstantfar);
-                if (throwtime >= -1) {
+                modules.launcher.turret.setAuto(0);
 
+                if (throwtime >= -1) {
                     if (throwtime == -1) {
                         modules.launcher.blocator.setState(Blocator.State.OPEN);
                         throwtime++;
                         timer.reset();
-                    }
-                    if (timer.milliseconds() > 110 && throwtime == 0) {
 
+                    }
+                    if (timer.milliseconds() > 125 && throwtime == 0) {
+                        modules.launcher.launcher.setAuto(rpmfar2);
                         modules.launcher.blocator.setState(Blocator.State.CLOSE);
                         throwtime++;
                         timer.reset();
+
                     }
-                    if (timer.milliseconds() > 300 && throwtime == 1) {
+
+                    if (timer.milliseconds() > 170 && throwtime == 1) {
                         modules.intake.setManualPower(0);
                     }
-                    if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > launchfailsafe * 100 - 1 && timer.milliseconds() > 250)) && throwtime == 1) {
+                    if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > farcounter && timer.milliseconds() > 200)) && throwtime == 1) {
+
                         throwtime++;
                         modules.intake.setManualPower(1);
                         modules.launcher.blocator.setState(Blocator.State.OPEN);
                         timer.reset();
 
                     }
-                    if (timer.milliseconds() > 110 && throwtime == 2) {
+                    if (timer.milliseconds() > 200 && throwtime == 2) {
                         modules.launcher.blocator.setState(Blocator.State.CLOSE);
                         throwtime++;
                         timer.reset();
 
                     }
-                    if (timer.milliseconds() > 350 && throwtime == 3) {
+                    if (timer.milliseconds() > 170 && throwtime == 3) {
                         modules.intake.setManualPower(0);
                     }
-                    if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > launchfailsafe * 100 - 1 && timer.milliseconds() > 250)) && throwtime == 3) {
+                    if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > farcounter && timer.milliseconds() > 200)) && throwtime == 3) {
                         modules.intake.setManualPower(1);
                         modules.launcher.blocator.setState(Blocator.State.OPEN);
                         throwtime++;
                         timer.reset();
 
                     }
-                    if (timer.milliseconds() > 800 && throwtime == 4) {
+                    if (timer.milliseconds() > 300 && throwtime == 4) {
                         throwtime = -2;
                         timer.reset();
-                        cases = 7;
+                        cases=7;
                     }
+
                 }
                 break;
             case 7:
@@ -335,6 +356,19 @@ public class AutoFarRed extends OpMode {
                 modules.intake.setManualPower(0);
                 modules.launcher.launcher.setAuto(0);
                 break;
+        }
+
+        if (distance > 270 && distance < 360)
+            modules.launcher.pivot.setangle(far.get(distance));
+        else
+            modules.launcher.pivot.setangle(angl);
+        if(Launcher.getAutopose()!=0) {
+            if (modules.launcher.launcher.Motorvel() > farcounter + 2.1) {
+                modules.launcher.launcher.setAuto(farcounter / 100);
+            } else if (throwtime <= 0)
+                modules.launcher.launcher.setAuto(rpmfar);
+            else
+                modules.launcher.launcher.setAuto(rpmfar2);
         }
 
         Position.setPose(new Pose2d(follower.odo.getPosX(DistanceUnit.CM), follower.odo.getPosY(DistanceUnit.CM), follower.odo.getHeading(AngleUnit.RADIANS)));

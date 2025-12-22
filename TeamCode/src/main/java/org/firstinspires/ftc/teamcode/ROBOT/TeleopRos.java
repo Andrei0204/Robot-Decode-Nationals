@@ -22,6 +22,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret;
+import org.firstinspires.ftc.teamcode.ROBOT.Modules.Position;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Point;
@@ -113,6 +114,9 @@ public class TeleopRos extends OpMode {
             odo.setPosition(new Pose2D(DistanceUnit.CM, 21, -157, AngleUnit.RADIANS, 0));
             modules.launcher.turret.turret.resetEncoder();
         }
+        if (gamepad2.dpad_down)
+            odo.setPosition(new Pose2D(DistanceUnit.CM, Position.getPose().getX(), Position.getPose().getY() + 10, AngleUnit.RADIANS, Position.getPose().getHeading()));
+
     }
 
     @Override
@@ -198,7 +202,7 @@ public class TeleopRos extends OpMode {
     @Override
     public void loop() {
         if (gamepad2.dpad_up) {
-            odo.setPosition(new Pose2D(DistanceUnit.CM, 169, -143, AngleUnit.RADIANS, 0));
+            odo.setPosition(new Pose2D(DistanceUnit.CM, 170, -143, AngleUnit.RADIANS, 0));
 
         }
         color = 0.555;

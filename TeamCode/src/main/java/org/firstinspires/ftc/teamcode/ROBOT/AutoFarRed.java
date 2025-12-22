@@ -62,6 +62,7 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Pivot.Pivot;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Position;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
+import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Point;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Pose;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Vector;
@@ -97,15 +98,16 @@ public class AutoFarRed extends OpMode {
     int cases = 1;
     int throwtime = -1;
     public static double rpm = 0.51;
-    public static double angl = 45.5;
+    public static double angl = 48;
     public static double kppeleme = 0.35;
+    public static double time = 0;
     Limelight3A limelight;
     LLResult result=null;
     InterpLUT far = new InterpLUT();
     @Override
     public void init() {
 
-
+        time=0;
         far.add(270, 52);
         far.add(300, 52);
         far.add(330, 50);
@@ -146,7 +148,7 @@ public class AutoFarRed extends OpMode {
     @Override
     public void start() {
         modules.update();
-        odo.setPosition(new Pose2D(DistanceUnit.CM, 21, -167, AngleUnit.RADIANS, -0));
+        odo.setPosition(new Pose2D(DistanceUnit.CM, 21, -174, AngleUnit.RADIANS, -0));
     }
 
     /*
@@ -229,7 +231,7 @@ public class AutoFarRed extends OpMode {
                         timer.reset();
 
                     }
-                    if (timer.milliseconds() > 200 && throwtime == 2) {
+                    if (timer.milliseconds() > 125 && throwtime == 2) {
                         modules.launcher.blocator.setState(Blocator.State.CLOSE);
                         throwtime++;
                         timer.reset();
@@ -255,20 +257,22 @@ public class AutoFarRed extends OpMode {
 
                 break;
             case 3: //collect first
+                follower.overallmulti=0.85;
                 modules.launcher.turret.setAuto(0);
-                follower.setTarget(new Pose(54, -298, Math.toRadians(-118)));
+                follower.setTarget(new Pose(54, -298, Math.toRadians(-125)));
                 modules.intake.setManualPower(1);
                 modules.launcher.launcher.setAuto(0);
                 modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                if(follower.reachedTarget(4))
+                if(follower.reachedTarget(4) || timer.milliseconds()>2000)
                 {
                     timer.reset();
                     cases=4;
                 }
                 break;
             case 4:
-                follower.setTarget(new Pose(21, -300, Math.toRadians(-118)));
-                if(follower.reachedTarget(4) || timer.milliseconds()>3000)
+                follower.overallmulti=1;
+                follower.setTarget(new Pose(21, -304, Math.toRadians(-130)));
+                if( (timer.milliseconds()>1000&& follower.reachedTarget(4)) || timer.milliseconds()>2000)
                 {
                     cases=5;
                     modules.intake.setManualPower(0);
@@ -285,7 +289,7 @@ public class AutoFarRed extends OpMode {
                 modules.intake.setState(Intake.State.MANUAL);
                 if(!follower.reachedTarget(6))
                     timer.reset();
-                if(!follower.reachedHeading(Math.toRadians(10)))
+                if(!follower.reachedHeading(Math.toRadians(30)))
                     modules.launcher.turret.setAuto(0);
                 else
                     LL();
@@ -300,7 +304,7 @@ public class AutoFarRed extends OpMode {
                 break;
             case 6:
                 modules.launcher.turret.setAuto(0);
-
+                LL();
                 if (throwtime >= -1) {
                     if (throwtime == -1) {
                         modules.launcher.blocator.setState(Blocator.State.OPEN);
@@ -327,7 +331,7 @@ public class AutoFarRed extends OpMode {
                         timer.reset();
 
                     }
-                    if (timer.milliseconds() > 200 && throwtime == 2) {
+                    if (timer.milliseconds() > 125 && throwtime == 2) {
                         modules.launcher.blocator.setState(Blocator.State.CLOSE);
                         throwtime++;
                         timer.reset();
@@ -346,7 +350,7 @@ public class AutoFarRed extends OpMode {
                     if (timer.milliseconds() > 300 && throwtime == 4) {
                         throwtime = -2;
                         timer.reset();
-                        cases=7;
+                        cases=8;
                     }
 
                 }
@@ -356,6 +360,210 @@ public class AutoFarRed extends OpMode {
                 modules.intake.setManualPower(0);
                 modules.launcher.launcher.setAuto(0);
                 break;
+            case 8: //collect first
+                follower.overallmulti=0.85;
+                modules.launcher.turret.setAuto(0);
+                follower.setTarget(new Pose(87.5, -210, Math.toRadians(-90)));
+                modules.intake.setManualPower(1);
+                modules.launcher.launcher.setAuto(0);
+                modules.launcher.blocator.setState(Blocator.State.CLOSE);
+                if(follower.reachedTarget(4))
+                {
+                    timer.reset();
+                    cases=9;
+                }
+                break;
+            case 9:
+                follower.overallmulti=0.4;
+                follower.setTarget(new Pose(87.5, -290, Math.toRadians(-90)));
+                if(follower.reachedTarget(4) || timer.milliseconds()>3000)
+                {
+                    follower.overallmulti=1;
+                    cases=10;
+                    modules.intake.setManualPower(0);
+                    follower.setTarget(new Pose(42, -180, Math.toRadians(-25)));
+                    modules.launcher.launcher.setAuto(rpmfar);
+                }
+                break;
+            case 10:
+
+                modules.launcher.pivot.setState(Pivot.State.AUTO);
+                modules.launcher.launcher.setState(Launcher.State.TEST);
+                modules.launcher.turret.setState(Turret.State.TEST);
+
+                modules.intake.setState(Intake.State.MANUAL);
+                if(!follower.reachedTarget(6))
+                    timer.reset();
+                if(!follower.reachedHeading(Math.toRadians(30)))
+                    modules.launcher.turret.setAuto(0);
+                else
+                    LL();
+
+                if (follower.reachedTargetAndStopped(6)  && follower.reachedHeading(Math.toRadians(7))&&(modules.launcher.launcher.Motorvel() > farcounter ||  timer.milliseconds() > 4000)){
+                    timer.reset();
+                    cases =11;
+                    throwtime = -1;
+                    modules.intake.setManualPower(1);
+
+                }
+                break;
+            case 11:
+                modules.launcher.turret.setAuto(0);
+                LL();
+                if (throwtime >= -1) {
+                    if (throwtime == -1) {
+                        modules.launcher.blocator.setState(Blocator.State.OPEN);
+                        throwtime++;
+                        timer.reset();
+
+                    }
+                    if (timer.milliseconds() > 125 && throwtime == 0) {
+                        modules.launcher.launcher.setAuto(rpmfar2);
+                        modules.launcher.blocator.setState(Blocator.State.CLOSE);
+                        throwtime++;
+                        timer.reset();
+
+                    }
+
+                    if (timer.milliseconds() > 170 && throwtime == 1) {
+                        modules.intake.setManualPower(0);
+                    }
+                    if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > farcounter && timer.milliseconds() > 200)) && throwtime == 1) {
+
+                        throwtime++;
+                        modules.intake.setManualPower(1);
+                        modules.launcher.blocator.setState(Blocator.State.OPEN);
+                        timer.reset();
+
+                    }
+                    if (timer.milliseconds() > 125 && throwtime == 2) {
+                        modules.launcher.blocator.setState(Blocator.State.CLOSE);
+                        throwtime++;
+                        timer.reset();
+
+                    }
+                    if (timer.milliseconds() > 170 && throwtime == 3) {
+                        modules.intake.setManualPower(0);
+                    }
+                    if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > farcounter && timer.milliseconds() > 200)) && throwtime == 3) {
+                        modules.intake.setManualPower(1);
+                        modules.launcher.blocator.setState(Blocator.State.OPEN);
+                        throwtime++;
+                        timer.reset();
+
+                    }
+                    if (timer.milliseconds() > 300 && throwtime == 4) {
+                        throwtime = -2;
+                        timer.reset();
+                        cases=12;
+                    }
+
+                }
+                break;
+            case 12:
+                follower.overallmulti=0.6;
+                modules.launcher.turret.setAuto(0);
+
+                if(time==0)
+                    follower.setTarget(new Pose(40, -310, Math.toRadians(-120)));
+                else
+                    follower.setTarget(new Pose(35, -310, Math.toRadians(-120)));
+                modules.intake.setManualPower(1);
+                modules.launcher.launcher.setAuto(0);
+                modules.launcher.blocator.setState(Blocator.State.CLOSE);
+                if(timer.milliseconds()>1500)
+                {
+                    timer.reset();
+                    cases=13;
+                    modules.intake.setManualPower(0);
+                    follower.overallmulti=0.85;
+                    follower.setTarget(new Pose(42, -180, Math.toRadians(-25)));
+                    modules.launcher.launcher.setAuto(rpmfar);
+                }
+                break;
+            case 13:
+
+                modules.launcher.pivot.setState(Pivot.State.AUTO);
+                modules.launcher.launcher.setState(Launcher.State.TEST);
+                modules.launcher.turret.setState(Turret.State.TEST);
+
+                modules.intake.setState(Intake.State.MANUAL);
+                if(!follower.reachedTarget(6))
+                    timer.reset();
+                if(!follower.reachedHeading(Math.toRadians(30)))
+                    modules.launcher.turret.setAuto(0);
+                else
+                    LL();
+
+                if (follower.reachedTargetAndStopped(6)  && follower.reachedHeading(Math.toRadians(7))&&(modules.launcher.launcher.Motorvel() > farcounter ||  timer.milliseconds() > 4000)){
+                    timer.reset();
+                    cases =14;
+                    throwtime = -1;
+                    modules.intake.setManualPower(1);
+
+                }
+                break;
+            case 14:
+                modules.launcher.turret.setAuto(0);
+                LL();
+                if (throwtime >= -1) {
+                    if (throwtime == -1) {
+                        modules.launcher.blocator.setState(Blocator.State.OPEN);
+                        throwtime++;
+                        timer.reset();
+
+                    }
+                    if (timer.milliseconds() > 125 && throwtime == 0) {
+                        modules.launcher.launcher.setAuto(rpmfar2);
+                        modules.launcher.blocator.setState(Blocator.State.CLOSE);
+                        throwtime++;
+                        timer.reset();
+
+                    }
+
+                    if (timer.milliseconds() > 170 && throwtime == 1) {
+                        modules.intake.setManualPower(0);
+                    }
+                    if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > farcounter && timer.milliseconds() > 200)) && throwtime == 1) {
+
+                        throwtime++;
+                        modules.intake.setManualPower(1);
+                        modules.launcher.blocator.setState(Blocator.State.OPEN);
+                        timer.reset();
+
+                    }
+                    if (timer.milliseconds() > 125 && throwtime == 2) {
+                        modules.launcher.blocator.setState(Blocator.State.CLOSE);
+                        throwtime++;
+                        timer.reset();
+
+                    }
+                    if (timer.milliseconds() > 170 && throwtime == 3) {
+                        modules.intake.setManualPower(0);
+                    }
+                    if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > farcounter && timer.milliseconds() > 200)) && throwtime == 3) {
+                        modules.intake.setManualPower(1);
+                        modules.launcher.blocator.setState(Blocator.State.OPEN);
+                        throwtime++;
+                        timer.reset();
+
+                    }
+                    if (timer.milliseconds() > 300 && throwtime == 4) {
+                        throwtime = -2;
+                        timer.reset();
+                        if(time==0)
+                        {
+                            cases=12;
+                            time++;
+                        }
+                        else
+                          cases=7;
+                    }
+
+                }
+                break;
+
+
         }
 
         if (distance > 270 && distance < 360)
@@ -363,7 +571,7 @@ public class AutoFarRed extends OpMode {
         else
             modules.launcher.pivot.setangle(angl);
         if(Launcher.getAutopose()!=0) {
-            if (modules.launcher.launcher.Motorvel() > farcounter + 2.1) {
+            if (modules.launcher.launcher.Motorvel() > farcounter + 1.1) {
                 modules.launcher.launcher.setAuto(farcounter / 100);
             } else if (throwtime <= 0)
                 modules.launcher.launcher.setAuto(rpmfar);

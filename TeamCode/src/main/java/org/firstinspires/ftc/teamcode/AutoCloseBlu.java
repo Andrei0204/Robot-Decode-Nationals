@@ -56,6 +56,7 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Pivot.Pivot;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Position;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
+import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Point;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Pose;
 
@@ -223,7 +224,7 @@ public class AutoCloseBlu extends OpMode {
                     timer.reset();
 
                 }
-                if (timer.milliseconds() > 200 && throwtime == 2) {
+                if (timer.milliseconds() > 150  && throwtime == 2) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     throwtime++;
                     timer.reset();
@@ -328,7 +329,7 @@ public class AutoCloseBlu extends OpMode {
                     timer.reset();
 
                 }
-                if (timer.milliseconds() > 200 && throwtime == 2) {
+                if (timer.milliseconds() > 150 && throwtime == 2) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     throwtime++;
                     timer.reset();
@@ -358,13 +359,13 @@ public class AutoCloseBlu extends OpMode {
                 if (follower.reachedTarget(8)) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     follower.setTarget(new Pose(120, -25, Math.toRadians(90)));
-
+                    timer.reset();
                     follower.overallmulti = 0.35;
                     cases = 7;
                 }
                 break;
             case 7: //colect sec
-                if (follower.reachedTarget(5.5)) {
+                if (follower.reachedTarget(5.5)|| timer.milliseconds()>2500) {
                     modules.launcher.turret.setAuto((angl ) * TICKSDEG);
                     modules.intake.setManualPower(0.6);
                     follower.overallmulti = 1;
@@ -432,7 +433,7 @@ public class AutoCloseBlu extends OpMode {
                     timer.reset();
 
                 }
-                if (timer.milliseconds() > 200 && throwtime == 2) {
+                if (timer.milliseconds() > 150 && throwtime == 2) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     throwtime++;
                     timer.reset();
@@ -461,13 +462,13 @@ public class AutoCloseBlu extends OpMode {
                 if (follower.reachedTarget(8)) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     follower.setTarget(new Pose(60, -16.5, Math.toRadians(90)));
-
+                    timer.reset();
                     follower.overallmulti = 0.4;
                     cases = 11;
                 }
                 break;
             case 11: //colect third
-                if (follower.reachedTarget(5.5)) {
+                if (follower.reachedTarget(5.5) ||timer.milliseconds()>2000) {
 
                     modules.intake.setManualPower(0);
                     follower.overallmulti = 1;
@@ -534,7 +535,7 @@ public class AutoCloseBlu extends OpMode {
                     timer.reset();
 
                 }
-                if (timer.milliseconds() > 200 && throwtime == 2) {
+                if (timer.milliseconds() > 150 && throwtime == 2) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     throwtime++;
                     timer.reset();

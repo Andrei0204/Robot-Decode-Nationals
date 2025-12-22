@@ -21,6 +21,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret;
+import org.firstinspires.ftc.teamcode.ROBOT.Modules.Position;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Point;
@@ -109,9 +110,12 @@ public class TeleopBlu extends OpMode {
     @Override
     public void init_loop() {
         if (gamepad2.a) {
-            odo.setPosition(new Pose2D(DistanceUnit.CM, 21, -124, AngleUnit.RADIANS, 0));
+            odo.setPosition(new Pose2D(DistanceUnit.CM, 21, -120, AngleUnit.RADIANS, 0));
             modules.launcher.turret.turret.resetEncoder();
         }
+        if (gamepad2.dpad_down)
+            odo.setPosition(new Pose2D(DistanceUnit.CM, Position.getPose().getX() + 17, Position.getPose().getY(), AngleUnit.RADIANS, Position.getPose().getHeading()));
+
     }
 
     @Override

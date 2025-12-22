@@ -20,11 +20,11 @@ public class RobotControl implements IRobotModule {
 
     public static double rpmclose = 0.65;
     public static double rpmclose2 = 0.68;
-    public static double closecounter = 52;
+    public static double closecounter = 51;
 
     public static double rpmfar = 0.71;
     public static double rpmfar2 = 0.73;
-    public static double farcounter = 64;
+    public static double farcounter = 60.5;
 
     public static double angl = 45;
 
@@ -35,6 +35,7 @@ public class RobotControl implements IRobotModule {
     ElapsedTime opentime;
     ElapsedTime timer;
 
+    public static double rpm = 0.9;
 
     InterpLUT close = new InterpLUT();
     InterpLUT far = new InterpLUT();
@@ -54,7 +55,8 @@ public class RobotControl implements IRobotModule {
         modules.launcher.pivot.setState(Pivot.State.AUTO);
         modules.launcher.launcher.setState(Launcher.State.TEST);
 
-
+        farcounter = 63;
+        closelaunch = 54;
 //
 //        close.add(196, 52);
 //        close.add(155, 50);
@@ -68,19 +70,23 @@ public class RobotControl implements IRobotModule {
         close.add(160, 40.5);
         close.add(168, 41);
         close.add(196, 41);
+        close.add(240, 41);
 
 
         far.add(270, 52);
         far.add(300, 52);
         far.add(330, 50);
         far.add(360, 49);
-
         far.createLUT();
         close.createLUT();
 
 
     }
 
+    public static void auto() {
+        farcounter = 61.5;
+        closecounter = 52;
+    }
 
     public void updateIntake() {
 
@@ -110,7 +116,7 @@ public class RobotControl implements IRobotModule {
 
 
         if (stickyGamepad1.x) {
-            modules.launcher.launcher.setAuto(rpmclose);
+            modules.launcher.launcher.setAuto(rpm);
             closelaunch = 1;
             modules.intake.setManualPower(0);
             farlaunch = 0;
@@ -118,7 +124,7 @@ public class RobotControl implements IRobotModule {
         }
 
         if (stickyGamepad1.y) {
-            modules.launcher.launcher.setAuto(rpmfar);
+            modules.launcher.launcher.setAuto(rpm);
             modules.intake.setManualPower(0);
             closelaunch = 0;
             farlaunch = 1;
@@ -135,12 +141,12 @@ public class RobotControl implements IRobotModule {
                 timer.reset();
 
             }
-            if (modules.launcher.launcher.Motorvel() > farcounter + 2.1) {
+            if (modules.launcher.launcher.Motorvel() > farcounter + 1.1) {
                 modules.launcher.launcher.setAuto(farcounter / 100);
             } else if (throwtime <= 0)
-                modules.launcher.launcher.setAuto(rpmfar);
+                modules.launcher.launcher.setAuto(rpm);
             else
-                modules.launcher.launcher.setAuto(rpmfar2);
+                modules.launcher.launcher.setAuto(rpm);
             if (throwtime >= -1) {
 
                 if (throwtime == -1) {
@@ -150,7 +156,7 @@ public class RobotControl implements IRobotModule {
 
                 }
                 if (timer.milliseconds() > 125 && throwtime == 0) {
-                    modules.launcher.launcher.setAuto(rpmfar2);
+                    modules.launcher.launcher.setAuto(rpm);
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     throwtime++;
                     timer.reset();
@@ -168,7 +174,7 @@ public class RobotControl implements IRobotModule {
                     timer.reset();
 
                 }
-                if (timer.milliseconds() > 200 && throwtime == 2) {
+                if (timer.milliseconds() > 180 && throwtime == 2) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     throwtime++;
                     timer.reset();
@@ -207,9 +213,9 @@ public class RobotControl implements IRobotModule {
             if (modules.launcher.launcher.Motorvel() > closecounter + 2.1) {
                 modules.launcher.launcher.setAuto(closecounter / 100);
             } else if (throwtime <= 0)
-                modules.launcher.launcher.setAuto(rpmclose);
+                modules.launcher.launcher.setAuto(rpm);
             else
-                modules.launcher.launcher.setAuto(rpmclose2);
+                modules.launcher.launcher.setAuto(rpm);
             if (throwtime >= -1) {
 
                 if (throwtime == -1) {
@@ -219,7 +225,7 @@ public class RobotControl implements IRobotModule {
 
                 }
                 if (timer.milliseconds() > 125 && throwtime == 0) {
-                    modules.launcher.launcher.setAuto(rpmclose2);
+                    modules.launcher.launcher.setAuto(rpm);
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     throwtime++;
                     timer.reset();
@@ -229,7 +235,7 @@ public class RobotControl implements IRobotModule {
                 if (timer.milliseconds() > 170 && throwtime == 1) {
                     modules.intake.setManualPower(0);
                 }
-                if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > closecounter && timer.milliseconds() > 200)) && throwtime == 1) {
+                if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > closecounter && timer.milliseconds() > 170)) && throwtime == 1) {
 
                     throwtime++;
                     modules.intake.setManualPower(1);
@@ -237,7 +243,7 @@ public class RobotControl implements IRobotModule {
                     timer.reset();
 
                 }
-                if (timer.milliseconds() > 200 && throwtime == 2) {
+                if (timer.milliseconds() > 180 && throwtime == 2) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     throwtime++;
                     timer.reset();
@@ -246,7 +252,7 @@ public class RobotControl implements IRobotModule {
                 if (timer.milliseconds() > 170 && throwtime == 3) {
                     modules.intake.setManualPower(0);
                 }
-                if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > closecounter && timer.milliseconds() > 200)) && throwtime == 3) {
+                if ((timer.milliseconds() > 2000 || (modules.launcher.launcher.Motorvel() > closecounter && timer.milliseconds() > 170)) && throwtime == 3) {
                     modules.intake.setManualPower(1);
                     modules.launcher.blocator.setState(Blocator.State.OPEN);
                     throwtime++;
@@ -263,25 +269,27 @@ public class RobotControl implements IRobotModule {
     }
 
     public void pivotupdate() {
-        if (distance < 196 && distance > 100)
+        if (distance < 240 && distance > 100)
             modules.launcher.pivot.setangle(close.get(distance));
         else if (distance > 270 && distance < 360)
             modules.launcher.pivot.setangle(far.get(distance));
-        else
-            modules.launcher.pivot.setangle(angl);
+//        else
+//            modules.launcher.pivot.setangle(angl);
 
-        if(stickyGamepad2.b) {
-            rpmfar = rpmfar + 0.01;
-            rpmfar2 = rpmfar2 + 0.01;
-            rpmclose = rpmclose + 0.01;
-            rpmclose2 = rpmclose2 + 0.01;
+        if (stickyGamepad2.b) {
+            farcounter = farcounter + 0.5;
+
         }
 
-        if(stickyGamepad2.x) {
-            rpmfar = rpmfar - 0.01;
-            rpmfar2 = rpmfar2 - 0.01;
-            rpmclose = rpmclose - 0.01;
-            rpmclose2 = rpmclose2 - 0.01;
+        if (stickyGamepad2.x) {
+            farcounter = farcounter - 0.5;
+        }
+        if (stickyGamepad2.y) {
+
+            closecounter = closecounter - 0.5;
+        }
+        if (stickyGamepad2.a) {
+            closecounter = closecounter + 0.5;
         }
     }
 

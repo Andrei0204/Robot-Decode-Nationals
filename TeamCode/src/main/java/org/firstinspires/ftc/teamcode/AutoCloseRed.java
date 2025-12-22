@@ -227,7 +227,7 @@ public class AutoCloseRed extends OpMode {
                     timer.reset();
 
                 }
-                if (timer.milliseconds() > 200 && throwtime == 2) {
+                if (timer.milliseconds() > 150 && throwtime == 2) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     throwtime++;
                     timer.reset();
@@ -263,7 +263,7 @@ public class AutoCloseRed extends OpMode {
                     follower.overallmulti = 1;
 
                     modules.launcher.launcher.setAuto(rpmclose);
-                    follower.setTarget(new Pose(175, -350, Math.toRadians(20)));
+                    follower.setTarget(new Pose(180, -350, Math.toRadians(20)));
 
                     modules.intake.setManualPower(0);
                     movement.reset();
@@ -329,7 +329,7 @@ public class AutoCloseRed extends OpMode {
                     timer.reset();
 
                 }
-                if (timer.milliseconds() > 200 && throwtime == 2) {
+                if (timer.milliseconds() > 150 && throwtime == 2) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     throwtime++;
                     timer.reset();
@@ -360,10 +360,11 @@ public class AutoCloseRed extends OpMode {
                     follower.setTarget(new Pose(130, -354, Math.toRadians(-88)));
                     follower.overallmulti = 0.35;
                     cases = 7;
+                    timer.reset();
                 }
                 break;
             case 7: //colect sec
-                if (follower.reachedTarget(5.5)) {
+                if (follower.reachedTarget(5.5) ||timer.milliseconds()>2000) {
                     modules.launcher.turret.setAuto((angl ) * TICKSDEG);
                     modules.intake.setManualPower(0.6);
                     follower.overallmulti = 1;
@@ -430,7 +431,7 @@ public class AutoCloseRed extends OpMode {
                     timer.reset();
 
                 }
-                if (timer.milliseconds() > 200 && throwtime == 2) {
+                if (timer.milliseconds() > 150 && throwtime == 2) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     throwtime++;
                     timer.reset();
@@ -460,10 +461,11 @@ public class AutoCloseRed extends OpMode {
                     follower.setTarget(new Pose(70, -362, Math.toRadians(-90)));
                     follower.overallmulti = 0.4;
                     cases = 11;
+                    timer.reset();
                 }
                 break;
             case 11: //colect third
-                if (follower.reachedTarget(5.5)) {
+                if (follower.reachedTarget(5.5) || timer.milliseconds()>2000) {
 
                     modules.intake.setManualPower(0);
                     follower.overallmulti = 1;
@@ -529,7 +531,7 @@ public class AutoCloseRed extends OpMode {
                     timer.reset();
 
                 }
-                if (timer.milliseconds() > 200 && throwtime == 2) {
+                if (timer.milliseconds() > 150 && throwtime == 2) {
                     modules.launcher.blocator.setState(Blocator.State.CLOSE);
                     throwtime++;
                     timer.reset();

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.ROBOT;
+package org.firstinspires.ftc.teamcode.ROBOT.AUTOS;
 /* Copyright (c) 2017 FIRST. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -30,13 +30,9 @@ package org.firstinspires.ftc.teamcode.ROBOT;
 
 
 import static org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret.TICKSDEG;
-import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.closecounter;
 import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.distance;
 import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.farcounter;
-import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.rpmclose;
-import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.rpmclose2;
-import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.rpmfar;
-import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.rpmfar2;
+
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -62,7 +58,6 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Pivot.Pivot;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Position;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
-import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Point;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Pose;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Vector;
@@ -97,10 +92,11 @@ public class AutoFarRed extends OpMode {
     Follower follower;
     int cases = 1;
     int throwtime = -1;
-    public static double rpm = 0.51;
-    public static double angl = 48;
+    public static double rpm = 0.9;
+    public static double angl = 45;
     public static double kppeleme = 0.35;
     public static double time = 0;
+    public static double errortur = 0;
     Limelight3A limelight;
     LLResult result=null;
     InterpLUT far = new InterpLUT();
@@ -108,10 +104,10 @@ public class AutoFarRed extends OpMode {
     public void init() {
 
         time=0;
-        far.add(270, 52);
-        far.add(300, 52);
-        far.add(330, 50);
-        far.add(360, 49);
+        far.add(270, 43);
+        far.add(300,43.5 );
+        far.add(330, 42);
+        far.add(360, 41);
         far.createLUT();
 // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -162,8 +158,9 @@ public class AutoFarRed extends OpMode {
             for (LLResultTypes.FiducialResult dr : detectorResults) {
                 if (dr.getFiducialId() == 24) {
                     Vector distances = new Vector(dr.getRobotPoseTargetSpace().getPosition().x, dr.getRobotPoseTargetSpace().getPosition().z);
-
+                    errortur =Math.abs(dr.getTargetXDegrees());
                     distance = distances.getMagnitude() * 100;
+
                     if (movement.milliseconds() > 0 && Math.abs(modules.launcher.turret.getCurrentPosition() - dr.getTargetXDegrees() * TICKSDEG) / TICKSDEG > 1
                     ) {
                         double heading_error = dr.getTargetXDegrees();
@@ -185,7 +182,7 @@ public class AutoFarRed extends OpMode {
                 modules.launcher.pivot.setState(Pivot.State.AUTO);
                 modules.launcher.launcher.setState(Launcher.State.TEST);
                 modules.launcher.turret.setState(Turret.State.TEST);
-                modules.launcher.launcher.setAuto(rpmfar);
+                modules.launcher.launcher.setAuto(rpm);
                 modules.intake.setState(Intake.State.MANUAL);
                 if(!follower.reachedTarget(6))
                     timer.reset();
@@ -193,7 +190,7 @@ public class AutoFarRed extends OpMode {
 
 
 
-                if (follower.reachedTargetAndStopped(6) &&(modules.launcher.launcher.Motorvel() > farcounter ||  timer.milliseconds() > 4000)){
+                if (follower.reachedTargetAndStopped(6) &&((modules.launcher.launcher.Motorvel() > farcounter && errortur<4) ||  timer.milliseconds() > 4000)){
                     timer.reset();
                     cases = 2;
                     throwtime = -1;
@@ -213,7 +210,7 @@ public class AutoFarRed extends OpMode {
 
                     }
                     if (timer.milliseconds() > 125 && throwtime == 0) {
-                        modules.launcher.launcher.setAuto(rpmfar2);
+                        modules.launcher.launcher.setAuto(rpm);
                         modules.launcher.blocator.setState(Blocator.State.CLOSE);
                         throwtime++;
                         timer.reset();
@@ -277,7 +274,7 @@ public class AutoFarRed extends OpMode {
                     cases=5;
                     modules.intake.setManualPower(0);
                     follower.setTarget(new Pose(42, -180, Math.toRadians(-25)));
-                    modules.launcher.launcher.setAuto(rpmfar);
+                    modules.launcher.launcher.setAuto(rpm);
                 }
                 break;
             case 5:
@@ -294,7 +291,7 @@ public class AutoFarRed extends OpMode {
                 else
                     LL();
 
-                if (follower.reachedTargetAndStopped(6)  && follower.reachedHeading(Math.toRadians(7))&&(modules.launcher.launcher.Motorvel() > farcounter ||  timer.milliseconds() > 4000)){
+                if (follower.reachedTargetAndStopped(6)  && follower.reachedHeading(Math.toRadians(7))&&((modules.launcher.launcher.Motorvel() > farcounter && errortur<4) ||  timer.milliseconds() > 4000)){
                     timer.reset();
                     cases = 6;
                     throwtime = -1;
@@ -305,7 +302,7 @@ public class AutoFarRed extends OpMode {
             case 6:
                 modules.launcher.turret.setAuto(0);
                 LL();
-                if (throwtime >= -1) {
+                if (throwtime >= -1 ) {
                     if (throwtime == -1) {
                         modules.launcher.blocator.setState(Blocator.State.OPEN);
                         throwtime++;
@@ -313,7 +310,7 @@ public class AutoFarRed extends OpMode {
 
                     }
                     if (timer.milliseconds() > 125 && throwtime == 0) {
-                        modules.launcher.launcher.setAuto(rpmfar2);
+                        modules.launcher.launcher.setAuto(rpm);
                         modules.launcher.blocator.setState(Blocator.State.CLOSE);
                         throwtime++;
                         timer.reset();
@@ -374,15 +371,15 @@ public class AutoFarRed extends OpMode {
                 }
                 break;
             case 9:
-                follower.overallmulti=0.4;
-                follower.setTarget(new Pose(87.5, -290, Math.toRadians(-90)));
+                follower.overallmulti=0.35;
+                follower.setTarget(new Pose(87.5, -310, Math.toRadians(-90)));
                 if(follower.reachedTarget(4) || timer.milliseconds()>3000)
                 {
                     follower.overallmulti=1;
                     cases=10;
                     modules.intake.setManualPower(0);
                     follower.setTarget(new Pose(42, -180, Math.toRadians(-25)));
-                    modules.launcher.launcher.setAuto(rpmfar);
+                    modules.launcher.launcher.setAuto(rpm);
                 }
                 break;
             case 10:
@@ -399,7 +396,7 @@ public class AutoFarRed extends OpMode {
                 else
                     LL();
 
-                if (follower.reachedTargetAndStopped(6)  && follower.reachedHeading(Math.toRadians(7))&&(modules.launcher.launcher.Motorvel() > farcounter ||  timer.milliseconds() > 4000)){
+                if (follower.reachedTargetAndStopped(6)  && follower.reachedHeading(Math.toRadians(7))&&((modules.launcher.launcher.Motorvel() > farcounter && errortur<4) ||  timer.milliseconds() > 4000)){
                     timer.reset();
                     cases =11;
                     throwtime = -1;
@@ -418,7 +415,7 @@ public class AutoFarRed extends OpMode {
 
                     }
                     if (timer.milliseconds() > 125 && throwtime == 0) {
-                        modules.launcher.launcher.setAuto(rpmfar2);
+                        modules.launcher.launcher.setAuto(rpm);
                         modules.launcher.blocator.setState(Blocator.State.CLOSE);
                         throwtime++;
                         timer.reset();
@@ -465,20 +462,20 @@ public class AutoFarRed extends OpMode {
                 modules.launcher.turret.setAuto(0);
 
                 if(time==0)
-                    follower.setTarget(new Pose(40, -310, Math.toRadians(-120)));
+                    follower.setTarget(new Pose(40, -310, Math.toRadians(-100)));
                 else
-                    follower.setTarget(new Pose(35, -310, Math.toRadians(-120)));
+                    follower.setTarget(new Pose(35, -310, Math.toRadians(-100)));
                 modules.intake.setManualPower(1);
                 modules.launcher.launcher.setAuto(0);
                 modules.launcher.blocator.setState(Blocator.State.CLOSE);
-                if(timer.milliseconds()>1500)
+                if(timer.milliseconds()>2500)
                 {
                     timer.reset();
                     cases=13;
                     modules.intake.setManualPower(0);
                     follower.overallmulti=0.85;
                     follower.setTarget(new Pose(42, -180, Math.toRadians(-25)));
-                    modules.launcher.launcher.setAuto(rpmfar);
+                    modules.launcher.launcher.setAuto(rpm);
                 }
                 break;
             case 13:
@@ -495,7 +492,7 @@ public class AutoFarRed extends OpMode {
                 else
                     LL();
 
-                if (follower.reachedTargetAndStopped(6)  && follower.reachedHeading(Math.toRadians(7))&&(modules.launcher.launcher.Motorvel() > farcounter ||  timer.milliseconds() > 4000)){
+                if (follower.reachedTargetAndStopped(6)  && follower.reachedHeading(Math.toRadians(7))&&(modules.launcher.launcher.Motorvel() > farcounter && errortur<4)||  timer.milliseconds() > 4000){
                     timer.reset();
                     cases =14;
                     throwtime = -1;
@@ -514,7 +511,7 @@ public class AutoFarRed extends OpMode {
 
                     }
                     if (timer.milliseconds() > 125 && throwtime == 0) {
-                        modules.launcher.launcher.setAuto(rpmfar2);
+                        modules.launcher.launcher.setAuto(rpm);
                         modules.launcher.blocator.setState(Blocator.State.CLOSE);
                         throwtime++;
                         timer.reset();
@@ -551,13 +548,14 @@ public class AutoFarRed extends OpMode {
                     if (timer.milliseconds() > 300 && throwtime == 4) {
                         throwtime = -2;
                         timer.reset();
-                        if(time==0)
-                        {
-                            cases=12;
-                            time++;
-                        }
-                        else
-                          cases=7;
+                        cases =7;
+//                        if(time==0)
+//                        {
+//                            cases=12;
+//                            time++;
+//                        }
+//                        else
+//                          cases=7;
                     }
 
                 }
@@ -571,12 +569,12 @@ public class AutoFarRed extends OpMode {
         else
             modules.launcher.pivot.setangle(angl);
         if(Launcher.getAutopose()!=0) {
-            if (modules.launcher.launcher.Motorvel() > farcounter + 1.1) {
-                modules.launcher.launcher.setAuto(farcounter / 100);
+            if (modules.launcher.launcher.Motorvel() > farcounter) {
+                modules.launcher.launcher.setAuto((farcounter) / 100);
             } else if (throwtime <= 0)
-                modules.launcher.launcher.setAuto(rpmfar);
+                modules.launcher.launcher.setAuto(rpm);
             else
-                modules.launcher.launcher.setAuto(rpmfar2);
+                modules.launcher.launcher.setAuto(rpm);
         }
 
         Position.setPose(new Pose2d(follower.odo.getPosX(DistanceUnit.CM), follower.odo.getPosY(DistanceUnit.CM), follower.odo.getHeading(AngleUnit.RADIANS)));

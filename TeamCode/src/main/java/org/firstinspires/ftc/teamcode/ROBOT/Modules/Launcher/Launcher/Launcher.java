@@ -26,7 +26,7 @@ public class Launcher implements IStateBasedModule, IRobotModule {
     public static double autopose = 0;
     public static double target = 0; //cm
     public static double currentPosition = startpos;
-    public static double kP = 0.1, kI = 0, kD = 0.00, kf = 0; //TODO Valori PID!!!!
+    public static double kP = 0.09, kI = 0, kD = 0.00, kf = 0; //TODO Valori PID!!!!
     public static double kS = 300, kV = 1.3;
 
     private static boolean ENABLED = true;

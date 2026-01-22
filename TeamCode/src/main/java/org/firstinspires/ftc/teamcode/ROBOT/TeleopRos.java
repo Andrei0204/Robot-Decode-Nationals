@@ -239,6 +239,8 @@ public class TeleopRos extends OpMode {
         telemetry.addData("motor1", modules.launcher.launcher.launcher.getCorrectedVelocity());
         telemetry.addData("motor2", modules.launcher.launcher.launcher2.getCorrectedVelocity());
 
+        telemetry.addData("pivot" ,control.getAngle(distance));
+        telemetry.addData("rpm" ,control.getPower(distance));
 
         telemetry.update();
 

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.ROBOT.AUTOS;
 /* Copyright (c) 2017 FIRST. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -56,7 +56,6 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Pivot.Pivot;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Position;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
-import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Point;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Pose;
 
@@ -143,14 +142,7 @@ public class AutoCloseBlu extends OpMode {
     public void loop() {
         modules.update();
         follower.update();
-        if(Launcher.getAutopose()!=0) {
-            if (modules.launcher.launcher.Motorvel() > closecounter + 2.1) {
-                modules.launcher.launcher.setAuto(closecounter / 100);
-            } else if (throwtime <= 0)
-                modules.launcher.launcher.setAuto(rpmclose);
-            else
-                modules.launcher.launcher.setAuto(rpmclose2);
-        }
+
         switch (cases) {
             case 1: //Gotoprelaunch
 
@@ -164,7 +156,7 @@ public class AutoCloseBlu extends OpMode {
                     timer.reset();
                 follower.setTarget(new Pose(180, -130, Math.toRadians(35)));
 
-                modules.launcher.pivot.setangle(40.5);
+                modules.launcher.pivot.setangle(37);
                 if (follower.localization.getX() < 290) {
                     modules.launcher.turret.setAuto((angl + 1) * TICKSDEG);
                 }
@@ -567,6 +559,14 @@ public class AutoCloseBlu extends OpMode {
             default:
                 telemetry.addData("t", modules.launcher.turret.getCurrentPosition() - result.getTx() * TICKSDEG);
                 break;
+        }
+        if(Launcher.getAutopose()!=0) {
+
+            if (modules.launcher.launcher.Motorvel() > closecounter + 2.1) {
+                modules.launcher.launcher.setAuto(closecounter / 100);
+            } else if (modules.launcher.launcher.Motorvel() > 10) {
+                modules.launcher.launcher.setAuto(rpmclose);
+            }
         }
 
         Position.setPose(new Pose2d(follower.odo.getPosX(DistanceUnit.CM), follower.odo.getPosY(DistanceUnit.CM), follower.odo.getHeading(AngleUnit.RADIANS)));

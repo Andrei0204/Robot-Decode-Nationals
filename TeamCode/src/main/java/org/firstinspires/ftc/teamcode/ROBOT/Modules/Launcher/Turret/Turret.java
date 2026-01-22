@@ -22,7 +22,7 @@
         public static double autopose = 0;
         public static double target = 0; //cm
         public static double currentPosition = startpos;
-        public  static double kP = 0.015, kI = 0.1, kD = 0.001; //TODO Valori PID!!!!
+        public  static double kP = 0.015, kI = 0.1, kD = 0.0007; //TODO Valori PID!!!!
 
         private static boolean ENABLED = true;
         public CoolMotor turret = null;

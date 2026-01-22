@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.ROBOT.AUTOS;
 /* Copyright (c) 2017 FIRST. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -30,7 +30,6 @@ package org.firstinspires.ftc.teamcode;
 
 
 import static org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret.TICKSDEG;
-import static org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret.autopose;
 import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.closecounter;
 import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.rpmclose;
 import static org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl.rpmclose2;
@@ -43,9 +42,6 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -60,11 +56,8 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Pivot.Pivot;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Position;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
-import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Point;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Pose;
-
-import java.util.Locale;
 
 /*
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -98,7 +91,8 @@ public class AutoCloseRed extends OpMode {
     public static double angl = 45.5;
 
     Limelight3A limelight;
-    LLResult result=null;
+    LLResult result = null;
+
     @Override
     public void init() {
 
@@ -149,14 +143,7 @@ public class AutoCloseRed extends OpMode {
     public void loop() {
         modules.update();
         follower.update();
-        if(Launcher.getAutopose()!=0) {
-            if (modules.launcher.launcher.Motorvel() > closecounter + 2.1) {
-                modules.launcher.launcher.setAuto(closecounter / 100);
-            } else if (throwtime <= 0)
-                modules.launcher.launcher.setAuto(rpmclose);
-            else
-                modules.launcher.launcher.setAuto(rpmclose2);
-        }
+
         switch (cases) {
             case 1: //Gotoprelaunch
 
@@ -165,10 +152,10 @@ public class AutoCloseRed extends OpMode {
                 modules.launcher.turret.setState(Turret.State.TEST);
 
 
-                if(!follower.reachedTarget(6))
+                if (!follower.reachedTarget(6))
                     timer.reset();
                 follower.setTarget(new Pose(195, -230, Math.toRadians(-90)));
-                modules.launcher.pivot.setangle(40.5);
+                modules.launcher.pivot.setangle(37);
                 if (follower.localization.getX() < 290) {
                     modules.launcher.turret.setAuto((angl + 1) * TICKSDEG);
                 }
@@ -177,14 +164,14 @@ public class AutoCloseRed extends OpMode {
                 }
 
 
-                if(follower.reachedTarget(10)) {
+                if (follower.reachedTarget(10)) {
                     result = limelight.getLatestResult();
-                    if (result.isValid() &&movement.milliseconds()>0) {
-                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
+                    if (result.isValid() && movement.milliseconds() > 0) {
+                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * 0.35 * TICKSDEG);
                         movement.reset();
                     }
                 }
-                if (follower.reachedTargetAndStopped(6) && (modules.launcher.launcher.Motorvel() > closecounter || timer. milliseconds()>5000) ){
+                if (follower.reachedTargetAndStopped(6) && (modules.launcher.launcher.Motorvel() > closecounter || timer.milliseconds() > 5000)) {
                     timer.reset();
                     cases = 2;
                     throwtime = -1;
@@ -195,8 +182,8 @@ public class AutoCloseRed extends OpMode {
                 break;
             case 2: //launch pre
                 result = limelight.getLatestResult();
-                if (result.isValid() &&movement.milliseconds()>0) {
-                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
+                if (result.isValid() && movement.milliseconds() > 0) {
+                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * 0.35 * TICKSDEG);
                     movement.reset();
 
                 }
@@ -246,7 +233,7 @@ public class AutoCloseRed extends OpMode {
                 if (timer.milliseconds() > 300 && throwtime == 4) {
                     throwtime = -2;
                     timer.reset();
-                    cases=3;
+                    cases = 3;
                 }
                 break;
             case 3: //collect first
@@ -257,7 +244,7 @@ public class AutoCloseRed extends OpMode {
 
                 follower.setTarget(new Pose(195, -341, Math.toRadians(-90)));
                 follower.overallmulti = 0.42;
-                if (follower.reachedTarget(5)|| timer.milliseconds()>2500) {
+                if (follower.reachedTarget(5) || timer.milliseconds() > 2500) {
                     modules.launcher.turret.setAuto((angl - 5.5) * TICKSDEG);
                     cases = -3;
                     follower.overallmulti = 1;
@@ -277,16 +264,16 @@ public class AutoCloseRed extends OpMode {
                 }
                 break;
             case 4:
-                if(follower.reachedTarget(10)) {
+                if (follower.reachedTarget(10)) {
                     result = limelight.getLatestResult();
-                    if (result.isValid() &&movement.milliseconds()>0) {
-                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
+                    if (result.isValid() && movement.milliseconds() > 0) {
+                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * 0.35 * TICKSDEG);
                         movement.reset();
 
                     }
 
                 }
-                if (follower.reachedTargetAndStopped(6) && (modules.launcher.launcher.Motorvel() > closecounter || timer. milliseconds()>3500)) {
+                if (follower.reachedTargetAndStopped(6) && (modules.launcher.launcher.Motorvel() > closecounter || timer.milliseconds() > 3500)) {
                     cases = 5;
                     modules.intake.setManualPower(1);
                     throwtime = -1;
@@ -295,8 +282,8 @@ public class AutoCloseRed extends OpMode {
                 break;
             case 5: //throw first
                 result = limelight.getLatestResult();
-                if (result.isValid() &&movement.milliseconds()>0) {
-                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
+                if (result.isValid() && movement.milliseconds() > 0) {
+                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * 0.35 * TICKSDEG);
                     movement.reset();
 
                 }
@@ -348,7 +335,7 @@ public class AutoCloseRed extends OpMode {
                 if (timer.milliseconds() > 300 && throwtime == 4) {
                     throwtime = -2;
                     timer.reset();
-                    cases=6;
+                    cases = 6;
                 }
                 break;
             case 6: //gotosec
@@ -364,13 +351,13 @@ public class AutoCloseRed extends OpMode {
                 }
                 break;
             case 7: //colect sec
-                if (follower.reachedTarget(5.5) ||timer.milliseconds()>2000) {
-                    modules.launcher.turret.setAuto((angl ) * TICKSDEG);
+                if (follower.reachedTarget(5.5) || timer.milliseconds() > 2000) {
+                    modules.launcher.turret.setAuto((angl) * TICKSDEG);
                     modules.intake.setManualPower(0.6);
                     follower.overallmulti = 1;
 
                     modules.launcher.launcher.setAuto(rpmclose + 0.0);
-                    follower.setTarget(new Pose(210, -250, Math.toRadians(-90)));
+                    follower.setTarget(new Pose(205, -250, Math.toRadians(-90)));
 
 
                     cases = 8;
@@ -378,16 +365,16 @@ public class AutoCloseRed extends OpMode {
                 }
                 break;
             case 8:
-                if(follower.reachedTarget(10)) {
+                if (follower.reachedTarget(10)) {
                     result = limelight.getLatestResult();
-                    if (result.isValid() &&movement.milliseconds()>0) {
-                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
+                    if (result.isValid() && movement.milliseconds() > 0) {
+                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * 0.35 * TICKSDEG);
                         movement.reset();
 
                     }
 
                 }
-                if (follower.reachedTargetAndStopped(6)&& (modules.launcher.launcher.Motorvel() > closecounter || timer. milliseconds()>3500)) {
+                if (follower.reachedTargetAndStopped(6) && (modules.launcher.launcher.Motorvel() > closecounter || timer.milliseconds() > 3500)) {
                     modules.intake.setManualPower(1);
                     cases = 9;
                     throwtime = -1;
@@ -396,8 +383,8 @@ public class AutoCloseRed extends OpMode {
                 break;
             case 9: //launchsec
                 result = limelight.getLatestResult();
-                if (result.isValid() &&movement.milliseconds()>0) {
-                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
+                if (result.isValid() && movement.milliseconds() > 0) {
+                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * 0.35 * TICKSDEG);
                     movement.reset();
 
                 }
@@ -450,7 +437,7 @@ public class AutoCloseRed extends OpMode {
                 if (timer.milliseconds() > 300 && throwtime == 4) {
                     throwtime = -2;
                     timer.reset();
-                    cases=10;
+                    cases = 10;
                 }
                 break;
             case 10: //gotothird
@@ -465,13 +452,13 @@ public class AutoCloseRed extends OpMode {
                 }
                 break;
             case 11: //colect third
-                if (follower.reachedTarget(5.5) || timer.milliseconds()>2000) {
+                if (follower.reachedTarget(5.5) || timer.milliseconds() > 2000) {
 
                     modules.intake.setManualPower(0);
                     follower.overallmulti = 1;
                     modules.launcher.turret.setAuto((angl - 4) * TICKSDEG);
                     modules.launcher.launcher.setAuto(rpmclose + 0.0);
-                    follower.setTarget(new Pose(225, -225, Math.toRadians(-90)));
+                    follower.setTarget(new Pose(210, -225, Math.toRadians(-90)));
 
                     timer.reset();
 
@@ -479,16 +466,16 @@ public class AutoCloseRed extends OpMode {
                 }
                 break;
             case 12:
-                if(follower.reachedTarget(10)) {
+                if (follower.reachedTarget(10)) {
                     result = limelight.getLatestResult();
-                    if (result.isValid() &&movement.milliseconds()>0) {
-                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
+                    if (result.isValid() && movement.milliseconds() > 0) {
+                        modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * 0.35 * TICKSDEG);
                         movement.reset();
 
                     }
 
                 }
-                if (follower.reachedTargetAndStopped(6)&& (modules.launcher.launcher.Motorvel() > closecounter || timer. milliseconds()>6000)) {
+                if (follower.reachedTargetAndStopped(6) && (modules.launcher.launcher.Motorvel() > closecounter || timer.milliseconds() > 6000)) {
                     cases = 13;
                     throwtime = -1;
                     timer.reset();
@@ -498,8 +485,8 @@ public class AutoCloseRed extends OpMode {
 
             case 13: //launchthird
                 result = limelight.getLatestResult();
-                if (result.isValid() &&movement.milliseconds()>0) {
-                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx()*0.35 * TICKSDEG);
+                if (result.isValid() && movement.milliseconds() > 0) {
+                    modules.launcher.turret.setAuto(modules.launcher.turret.getCurrentPosition() - result.getTx() * 0.35 * TICKSDEG);
                     movement.reset();
 
                 }
@@ -547,16 +534,16 @@ public class AutoCloseRed extends OpMode {
                     timer.reset();
 
                 }
-                if (timer.milliseconds() > 300 && throwtime == 4) {
+                if (timer.milliseconds() > 600 && throwtime == 4) {
                     throwtime = -2;
                     timer.reset();
-                    cases=14;
+                    cases = 14;
                 }
                 break;
             case 14:
                 modules.launcher.launcher.setAuto(0);
                 modules.intake.setManualPower(0);
-//                follower.setTarget(new Pose(150, -300, Math.toRadians(-90)));
+                follower.setTarget(new Pose(195, -340, Math.toRadians(-90)));
                 cases = 15;
                 break;
 
@@ -564,7 +551,14 @@ public class AutoCloseRed extends OpMode {
                 telemetry.addData("t", modules.launcher.turret.getCurrentPosition() - result.getTx() * TICKSDEG);
                 break;
         }
+        if(Launcher.getAutopose()!=0) {
 
+            if (modules.launcher.launcher.Motorvel() > closecounter +2.1) {
+                modules.launcher.launcher.setAuto(closecounter / 100);
+            } else if (modules.launcher.launcher.Motorvel() > 10) {
+                modules.launcher.launcher.setAuto(rpmclose);
+            }
+        }
         Position.setPose(new Pose2d(follower.odo.getPosX(DistanceUnit.CM), follower.odo.getPosY(DistanceUnit.CM), follower.odo.getHeading(AngleUnit.RADIANS)));
         telemetry.addData("h", follower.odo.getPosition().getHeading(AngleUnit.RADIANS));
         telemetry.addData("h", follower.odo.getPosition().getX(DistanceUnit.CM));

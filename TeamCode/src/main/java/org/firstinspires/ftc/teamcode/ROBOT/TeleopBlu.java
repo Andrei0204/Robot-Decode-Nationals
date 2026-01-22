@@ -174,7 +174,7 @@ public class TeleopBlu extends OpMode {
                             color = 0.5;
                         }
                         telemetry.addData("space?", dr.getRobotPoseTargetSpace());
-                        Vector distances= new Vector(dr.getRobotPoseTargetSpace().getPosition().x,dr.getRobotPoseTargetSpace().getPosition().z);
+                        Vector distances= new Vector(Math.abs(dr.getRobotPoseTargetSpace().getPosition().x),dr.getRobotPoseTargetSpace().getPosition().z);
 
                         distance = distances.getMagnitude()*100;
                         if (movement.milliseconds() > 0 && Math.abs(modules.launcher.turret.getCurrentPosition() - dr.getTargetXDegrees() * TICKSDEG) / TICKSDEG > 1

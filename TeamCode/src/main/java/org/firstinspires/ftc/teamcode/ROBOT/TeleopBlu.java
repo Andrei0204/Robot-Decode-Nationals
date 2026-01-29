@@ -207,6 +207,8 @@ public class TeleopBlu extends OpMode {
         color = 0.555;
         turret();
         control.update();
+
+        
         double x = -gamepad1.left_stick_x; // Remember, Y stick is reversed!
         double y = -gamepad1.left_stick_y;
         double rx = -gamepad1.right_stick_x;

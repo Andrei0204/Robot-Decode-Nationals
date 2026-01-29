@@ -103,8 +103,8 @@ public class AutoFarBlue extends OpMode {
     @Override
     public void init() {
         time = 0;
-        far.add(270, 43);
-        far.add(300,43.5 );
+        far.add(270, 44);
+        far.add(300,44 );
         far.add(330, 42);
         far.add(360, 41);
         far.createLUT();
@@ -254,7 +254,7 @@ public class AutoFarBlue extends OpMode {
             case 3: //collect first
                 modules.launcher.turret.setAuto(0);
                 follower.overallmulti = 0.85;
-                follower.setTarget(new Pose(20, -5.5, Math.toRadians(126)));
+                follower.setTarget(new Pose(20, -10, Math.toRadians(126)));
 
                 modules.intake.setManualPower(1);
                 modules.launcher.launcher.setAuto(0);
@@ -266,7 +266,7 @@ public class AutoFarBlue extends OpMode {
                 break;
             case 4:
                 follower.overallmulti = 1;
-                follower.setTarget(new Pose(-10, -4, Math.toRadians(126)));
+                follower.setTarget(new Pose(-10, -14, Math.toRadians(126)));
 
 
                 if (follower.reachedTarget(4) || timer.milliseconds() > 3000) {
@@ -347,7 +347,7 @@ public class AutoFarBlue extends OpMode {
                     if (timer.milliseconds() > 300 && throwtime == 4) {
                         throwtime = -2;
                         timer.reset();
-                        cases = 8;
+                        cases = 12;
                     }
 
                 }
@@ -461,9 +461,9 @@ public class AutoFarBlue extends OpMode {
                 modules.launcher.turret.setAuto(0);
 
                 if (time == 0)
-                    follower.setTarget(new Pose(-10, -10, Math.toRadians(100)));
+                    follower.setTarget(new Pose(-10, -14, Math.toRadians(100)));
                 else
-                    follower.setTarget(new Pose(-13, -10, Math.toRadians(100)));
+                    follower.setTarget(new Pose(-13, -14, Math.toRadians(100)));
                 modules.intake.setManualPower(1);
                 modules.launcher.launcher.setAuto(0);
                 modules.launcher.blocator.setState(Blocator.State.CLOSE);

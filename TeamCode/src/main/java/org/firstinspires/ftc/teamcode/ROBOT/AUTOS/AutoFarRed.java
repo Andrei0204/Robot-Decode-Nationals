@@ -104,8 +104,8 @@ public class AutoFarRed extends OpMode {
     public void init() {
 
         time=0;
-        far.add(270, 43);
-        far.add(300,43.5 );
+        far.add(270, 44);
+        far.add(300,44 );
         far.add(330, 42);
         far.add(360, 41);
         far.createLUT();
@@ -347,7 +347,7 @@ public class AutoFarRed extends OpMode {
                     if (timer.milliseconds() > 300 && throwtime == 4) {
                         throwtime = -2;
                         timer.reset();
-                        cases=8;
+                        cases=12;
                     }
 
                 }

@@ -20,10 +20,10 @@ public class RobotControl implements IRobotModule {
 
     public static double rpmclose = 0.65;
     public static double rpmclose2 = 0.68;
-    public static double closecounter = 46.5;
+    public static double closecounter = 44;
 
 
-    public static double farcounter =60;
+    public static double farcounter =55;
 
     public static double angl = 45;
 
@@ -47,8 +47,8 @@ public class RobotControl implements IRobotModule {
     double throwtime = -2;
 
     public RobotControl(Gamepad gamepad1, Gamepad gamepad2, RoboModules modules) {
-        closecounter=49;
-        farcounter=57;
+        closecounter=47;
+        farcounter=55;
         this.gamepad1 = gamepad1;
         stickyGamepad1 = new StickyGamepad(gamepad1);
         backtime = new ElapsedTime();

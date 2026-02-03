@@ -1,35 +1,38 @@
-package org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Launcher;
+package org.firstinspires.ftc.teamcode.ROBOT;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
-import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.CoolMotor;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IRobotModule;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IStateBasedModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Config
-public class Launcher implements IStateBasedModule, IRobotModule {
+public class Spinner implements IStateBasedModule, IRobotModule {
 
 
-    private static final Logger log = LoggerFactory.getLogger(Launcher.class);
-    public static double TICKS_PER_REV = 28;
+    public static final double TICKS435 = 103.8;    //test
+    public static final double TURTICKS = TICKS435 * 3;    //test
+    public static double TICKSDEG = TURTICKS / 360;
 
-    public static double startpos = 0;
-    public static final double finalpos = 50;
+    public static double startpos = 0 * TICKSDEG;
+    public static final double finalpos = 9 * TICKSDEG;
     public static double autopose = 0;
+    public static double sec = 100;
+    public static double behsec = -176;
+    public static double behthird = -270;
+    public static double third = 200;
+    public static double jiggf = 5;
+    public static double jiggb = -5;
     public static double target = 0; //cm
     public static double currentPosition = startpos;
-    public static double kP = 0.09, kI = 0, kD = 0.00, kf = 0; //TODO Valori PID!!!!
-    public static double kS = 300, kV = 1.3;
+    public static double kP = 0.02, kI = 0, kD = 0.0004; //TODO Valori PID!!!!
+    public static double f = 0;
 
     private static boolean ENABLED = true;
+    public CoolMotor spinner = null;
 
 
     public double manualPower = 0;
@@ -37,49 +40,22 @@ public class Launcher implements IStateBasedModule, IRobotModule {
 
     public State state;
     public EXTRUNMODE runMode;
-    VoltageSensor voltage;
 
- public    Motor launcher;
 
-public     DcMotor motorOne;
-    public     Motor launcher2;
-   public DcMotor motorTwo;
-
-    double actualKs = 0;
-    public Launcher(HardwareMap hardwareMap, State initialState) {
-        Motor encoder;
+    public Spinner(HardwareMap hardwareMap, State initialState) {
         if (!ENABLED) {
 
-            encoder = null;
-            motorOne = null;
+
+            spinner = null;
         } else {
 
-            encoder = new Motor(hardwareMap, "INTAKE", Motor.GoBILDA.BARE);
-            launcher = new Motor(hardwareMap, "LANSATOR", Motor.GoBILDA.BARE);
-            launcher2 = new Motor(hardwareMap, "LANSATOR2", Motor.GoBILDA.BARE);
-            launcher.encoder = launcher2.encoder;
+            spinner = new CoolMotor(hardwareMap.get(DcMotorEx.class, "SPINNER"), CoolMotor.RunMode.RUN, false);
 
-            motorOne = launcher.motor;
-            motorTwo = launcher2.motor;
-            launcher.setInverted(true);
-            launcher2.setInverted(false);
-            launcher.setRunMode(Motor.RunMode.VelocityControl);
-            launcher2.setRunMode(Motor.RunMode.VelocityControl);
-            voltage = hardwareMap.voltageSensor.iterator().next();
 
         }
         this.state = initialState;
     }
 
-    public double getAmps(){
-        return ((DcMotorEx) motorTwo).getCurrent(CurrentUnit.AMPS);    }
-    public void setAuto(double auto) {
-        autopose = -auto;
-    }
-
-    public static double getAutopose() {
-        return autopose;
-    }
 
     public void setManualPower(double power) {
         this.manualPower = power;
@@ -102,23 +78,15 @@ public     DcMotor motorOne;
     }
 
     public double getCurrentPosition() {
-        return motorTwo.getCurrentPosition();
+        return spinner.getCurrentPosition();
     }
 
     public double getRealCurrentPosition() {
-        return motorTwo.getCurrentPosition() / TICKS_PER_REV;
+        return spinner.getCurrentPosition() / TICKSDEG;
     }
 
     public boolean atTarget() {
-        return Math.abs(Motorvel() - target / TICKS_PER_REV) < 150;
-    }
-
-    public double Revolutions(double ticks) {
-        return ticks / TICKS_PER_REV;
-    }
-
-    public double Motorvel() {
-        return -Revolutions(launcher2.encoder.getRawVelocity());
+        return Math.abs(getRealCurrentPosition() - target / TICKSDEG) < 5;
     }
 
     public State getState() {
@@ -133,14 +101,21 @@ public     DcMotor motorOne;
     public boolean reachedPosition(double tolerance) {
         if (state == State.MANUAL)
             return false;
-        return (Math.abs(target - getCurrentPosition())) / TICKS_PER_REV <= tolerance;
+        return (Math.abs(target - getCurrentPosition())) / TICKSDEG <= tolerance;
     }
 
     public void updateStateValues() {
         State.MANUAL.position = currentPosition;
-        setTarget(currentPosition * TICKS_PER_REV);
+        setTarget(currentPosition * TICKSDEG);
     }
 
+    public void setAuto(double auto) {
+        autopose = auto;
+    }
+
+    public double getAuto() {
+        return autopose;
+    }
 
     @Override
     public void update() {
@@ -157,7 +132,7 @@ public     DcMotor motorOne;
         if (Math.abs(manualPower) >= 0.1) {
             runMode = EXTRUNMODE.MANUAL;
             setState(State.MANUAL);
-            target = currentPosition * TICKS_PER_REV;
+            target = currentPosition * TICKSDEG;
         } else {
             runMode = EXTRUNMODE.PID;
             switch (state) {
@@ -168,8 +143,27 @@ public     DcMotor motorOne;
                 case START:
                     setTarget(startpos);
                     break;
+                case SEC:
+
+                    setTarget(sec);
+                    break;
+                case THIRD:
+                    setTarget(third);
+                    break;
+                case BEHSEC:
+                    setTarget(behsec);
+                    break;
+                case BEHTHIRD:
+                    setTarget(behthird);
+                    break;
                 case TEST:
                     setTarget(autopose);
+                    break;
+                case JIGF:
+                    setTarget(jiggf);
+                    break;
+                case JIGB:
+                    setTarget(jiggf);
                     break;
 
             }
@@ -178,31 +172,30 @@ public     DcMotor motorOne;
 
     @Override
     public void updateHardware() {
-
+        pid = new PIDCoefficients(kP, kI, kD);
 
         switch (runMode) {
-
-
             case PID:
-
-                launcher.setVeloCoefficients(kP, kI, kD);
-                launcher2.setVeloCoefficients(kP, kI, kD);
-
-                launcher.setFeedforwardCoefficients(kS + actualKs, kV);
-                launcher2.setFeedforwardCoefficients(kS + actualKs, kV);
-                launcher.set(target);
-                launcher2.set(target);
+                spinner.setMode(CoolMotor.RunMode.PID);
 
 
+                spinner.setPIDF(pid, f);
+
+
+                spinner.calculatePowerFF(getRealCurrentPosition(), target);
                 break;
             case MANUAL: {
 
+                spinner.setMode(CoolMotor.RunMode.RUN);
+
+                spinner.setPower(manualPower);
                 break;
             }
         }
 
 
-        currentPosition = Motorvel() / TICKS_PER_REV;
+        currentPosition = spinner.getCurrentPosition() / TICKSDEG;
+        spinner.update();
 
     }
 
@@ -210,6 +203,12 @@ public     DcMotor motorOne;
         MANUAL(currentPosition),
         START(startpos),
         TEST(autopose),
+        SEC(sec),
+        THIRD(third),
+        JIGB(jiggb),
+        JIGF(jiggf),
+        BEHSEC(behsec),
+        BEHTHIRD(behthird),
         FULL(finalpos);
         public final State nextState;
         public double position;
@@ -225,7 +224,35 @@ public     DcMotor motorOne;
         }
     }
 
+    public void counter(int k) {
+        setRunMode(Spinner.EXTRUNMODE.PID);
+        switch (k) {
+            case 0:
+                setState(State.START);
+                break;
+            case 1:
+                setState(State.SEC);
+                break;
+            case 2:
+                setState(State.THIRD);
+                break;
+            case -1:
+                setState(State.BEHSEC);
+                break;
+            case -2:
+                setState(State.BEHTHIRD);
+                break;
+
+
+        }
+
+    }
+
+    ;
+
+
     public enum EXTRUNMODE {
         PID, MANUAL
     }
 }
+

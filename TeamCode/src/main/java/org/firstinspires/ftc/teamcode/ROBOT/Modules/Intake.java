@@ -1,6 +1,5 @@
-package org.firstinspires.ftc.teamcode.ROBOT.Modules.Intake;
+package org.firstinspires.ftc.teamcode.ROBOT.Modules;
 
-import static org.firstinspires.ftc.teamcode.ROBOT.Modules.Launcher.Turret.Turret.currentPosition;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -13,7 +12,7 @@ import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IStateBasedModule
 
 @Config
 public class Intake implements IStateBasedModule, IRobotModule {
-
+    public static double currentPosition = 0;
 
 
     private static boolean ENABLED = true;
@@ -36,9 +35,10 @@ public class Intake implements IStateBasedModule, IRobotModule {
             intake = null;
         } else {
 
-            intake = new CoolMotor(hardwareMap.get(DcMotorEx.class, "INTAKE"), CoolMotor.RunMode.RUN,true);
+            intake = new CoolMotor(hardwareMap.get(DcMotorEx.class, "INTAKE"), CoolMotor.RunMode.RUN,false);
             runMode= EXTRUNMODE.MANUAL;
-            intake.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.BRAKE);
+            intake.setZeroPowerBehaviour(DcMotor.ZeroPowerBehavior.FLOAT);
+            setState(State.MANUAL);
         }
         this.state = initialState;
     }
@@ -48,7 +48,7 @@ public class Intake implements IStateBasedModule, IRobotModule {
         this.manualPower = power;
     }
     public double getManualPower() {
-       return manualPower;
+        return manualPower;
     }
 
 
@@ -80,7 +80,7 @@ public class Intake implements IStateBasedModule, IRobotModule {
 
 
     public void updateStateValues() {
-       State.MANUAL.position = currentPosition;
+        State.MANUAL.position = currentPosition;
         setTarget(0);
     }
 
@@ -136,6 +136,6 @@ public class Intake implements IStateBasedModule, IRobotModule {
     }
 
     public enum EXTRUNMODE {
-         MANUAL
+        MANUAL
     }
 }

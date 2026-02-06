@@ -1,24 +1,28 @@
 package org.firstinspires.ftc.teamcode.ROBOT;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 
+import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.CoolServo;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IRobotModule;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IStateBasedModule;
-
+@Config
 public class LTur implements IRobotModule, IStateBasedModule {
     public static double target = 0; //cm
     public static double startpos = 0;
-    public static double auto = 0.5;
+    public static double auto = 0.3;
     double start = 37;
     private static boolean ENABLED = true;
-    public Servo T1 = null;
-    public Servo T2 = null;
+
     public DcMotor turret = null;
 
 
+    public Servo T1  ;
+    public Servo    T2;
     public static final double TICKS435 = 8192 ;    //test
     public static final double TURTICKS = TICKS435 *4.5;    //test
     public static double TICKSDEG = TURTICKS/360;
@@ -26,6 +30,7 @@ public class LTur implements IRobotModule, IStateBasedModule {
     public LTur.State state;
 
 
+    public static double profileMaxVelocity = 15, profileAcceleration = 12, profileDeceleration = 10;
 
     public LTur(HardwareMap hardwareMap, LTur.State initialState) {
         if (!ENABLED) {
@@ -35,8 +40,12 @@ public class LTur implements IRobotModule, IStateBasedModule {
             T2 = null;
         } else {
 
+
             T1 = hardwareMap.get(Servo.class, "T1");
             T2 = hardwareMap.get(Servo.class, "T2");
+//            T1 = new CoolServo(hardwareMap.get(ServoImplEx.class, "T1"),true,profileMaxVelocity,profileAcceleration,profileDeceleration, initialState.position);
+//            T2 = new CoolServo(hardwareMap.get(ServoImplEx.class, "T2"),true,profileMaxVelocity,profileAcceleration,profileDeceleration, initialState.position);
+
             turret =  hardwareMap.get(DcMotor.class, "INTAKE");
             turret.setDirection(DcMotorSimple.Direction.REVERSE);
             T2.setDirection(Servo.Direction.REVERSE);
@@ -44,6 +53,9 @@ public class LTur implements IRobotModule, IStateBasedModule {
 
         }
         this.state = initialState;
+        setangle(0);
+        setState(State.AUTO);
+
     }
 
 
@@ -77,9 +89,10 @@ public class LTur implements IRobotModule, IStateBasedModule {
 
     public void setangle(double angle)
     {
+        angle =angle+105;
         double upmax=0.85;
         double downmax=0;
-        double tickstodegree=0.00283;
+        double tickstodegree=0.002931;
         this.auto  =angle*tickstodegree ;
         if(auto<downmax)
             auto=downmax;
@@ -88,10 +101,12 @@ public class LTur implements IRobotModule, IStateBasedModule {
     }
     @Override
     public void update() {
+
         if (!ENABLED) return;
         updateState();
         updateHardware();
-
+//        T1.update();
+//        T2.update();
     }
 
     @Override

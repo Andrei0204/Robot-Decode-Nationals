@@ -73,21 +73,22 @@ public class SensorGoBildaPinpointExample extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-        odo = hardwareMap.get(GoBildaPinpointDriver.class,"odo");
+        odo = hardwareMap.get(GoBildaPinpointDriver.class,"pp");
 
-        odo.setOffsets(55, -170, DistanceUnit.MM); //these are tuned for 3110-0002-0001 Product Insight #1
+        odo.setOffsets(-5, -155, DistanceUnit.MM); //these are tuned for 3110-0002-0001 Product Insight #1
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.REVERSED);
+        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         odo.resetPosAndIMU();
-        telemetry.addData("X offset", odo.getXOffset(DistanceUnit.CM));
-        telemetry.addData("Y offset", odo.getYOffset(DistanceUnit.CM));
+        telemetry.addData("X offset", odo.getXOffset(DistanceUnit.INCH));
+        telemetry.addData("Y offset", odo.getYOffset(DistanceUnit.INCH));
         telemetry.update();
 
         // Wait for the game to start (driver presses START)
         waitForStart();
+
         resetRuntime();
 
-
+        odo.setPosition(new Pose2D(DistanceUnit.INCH,7.7,7.5,AngleUnit.DEGREES,0));
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
@@ -109,8 +110,7 @@ public class SensorGoBildaPinpointExample extends LinearOpMode {
             }
 
             if (gamepad1.b){
-                odo.recalibrateIMU(); //recalibrates the IMU without resetting position
-            }
+                odo.setPosition(new Pose2D(DistanceUnit.INCH,7.7,7.5,AngleUnit.DEGREES,0));            }
 
             /*
             This code prints the loop frequency of the REV Control Hub. This frequency is effected
@@ -128,13 +128,13 @@ public class SensorGoBildaPinpointExample extends LinearOpMode {
             gets the current Position (x & y in mm, and heading in degrees) of the robot, and prints it.
              */
             Pose2D pos = odo.getPosition();
-            String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.MM), pos.getY(DistanceUnit.MM), pos.getHeading(AngleUnit.DEGREES));
+            String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
             telemetry.addData("Position", data);
 
             /*
             gets the current Velocity (x & y in mm/sec and heading in degrees/sec) and prints it.
              */
-            String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", odo.getVelX(DistanceUnit.MM), odo.getVelY(DistanceUnit.MM), odo.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES));
+            String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", odo.getVelX(DistanceUnit.INCH), odo.getVelY(DistanceUnit.INCH), odo.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES));
             telemetry.addData("Velocity", velocity);
 
 

@@ -24,11 +24,12 @@ public class Spinner implements IStateBasedModule, IRobotModule {
     public static double behsec = -176;
     public static double behthird = -270;
     public static double third = 200;
+    public static double launch = 340;
     public static double jiggf = 5;
     public static double jiggb = -5;
     public static double target = 0; //cm
     public static double currentPosition = startpos;
-    public static double kP = 0.02, kI = 0, kD = 0.0004; //TODO Valori PID!!!!
+    public static double kP = 0.01, kI = 0, kD = 0.0005; //TODO Valori PID!!!!
     public static double f = 0;
 
     private static boolean ENABLED = true;
@@ -165,6 +166,9 @@ public class Spinner implements IStateBasedModule, IRobotModule {
                 case JIGB:
                     setTarget(jiggf);
                     break;
+                case Launch:
+                        setTarget(launch);
+                    break;
 
             }
         }
@@ -209,6 +213,7 @@ public class Spinner implements IStateBasedModule, IRobotModule {
         JIGF(jiggf),
         BEHSEC(behsec),
         BEHTHIRD(behthird),
+        Launch(launch),
         FULL(finalpos);
         public final State nextState;
         public double position;

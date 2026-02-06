@@ -18,7 +18,7 @@ public class testtur extends OpMode {
 
     @Override
     public void init() {
-        tur = new LTur(hardwareMap, LTur.State.START);
+        tur = new LTur(hardwareMap, LTur.State.AUTO);
         tur.setangle(0);
         tur.setState(LTur.State.AUTO);
         tur.update();

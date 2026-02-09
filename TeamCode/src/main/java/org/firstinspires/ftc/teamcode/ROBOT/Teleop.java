@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.ROBOT;
 
 
 import com.acmerobotics.dashboard.config.Config;
+import com.bylazar.field.Style;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -20,13 +21,15 @@ import java.util.Locale;
 @Config
 @TeleOp
 public class Teleop extends OpMode {
-
+    private static final Style robotLook = new Style(
+            "", "#3F51B5", 0.75
+    );
     DcMotor BR;
     DcMotor BL;
     DcMotor FL;
     DcMotor FR;
     ElapsedTime timer;
-    public static double x=-5,y=-150;
+    public static double x=-3,y=-152;
     RobotControl control;
     RoboModules modules;
     public int spin = 0;
@@ -40,7 +43,7 @@ public class Teleop extends OpMode {
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
         odo.resetPosAndIMU();
-        odo.setPosition(new Pose2D(DistanceUnit.INCH,7.7,-7.5, AngleUnit.DEGREES,0));
+
         modules = new RoboModules(hardwareMap);
         control = new RobotControl(gamepad1, gamepad2, modules,odo);
         timer= new ElapsedTime();
@@ -66,13 +69,16 @@ public class Teleop extends OpMode {
 
     }
 @Override public void start(){
-    odo.setPosition(new Pose2D(DistanceUnit.INCH,7.7,-7.5,AngleUnit.DEGREES,0));
+    odo.setPosition(new Pose2D(DistanceUnit.INCH,7.7,7.5,AngleUnit.DEGREES,90));
     modules.lTur.turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     modules.lTur.turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 }
     @Override
     public void loop() {
-
+        if(gamepad1.share)
+        {
+            odo.setPosition(new Pose2D(DistanceUnit.INCH,7.7,7.5, AngleUnit.DEGREES,90));
+        }
         odo.update();
         double x = -gamepad1.left_stick_x;
         double y = gamepad1.left_stick_y;
@@ -102,6 +108,14 @@ public class Teleop extends OpMode {
         telemetry.addData("spinner", modules.spinner.getRealCurrentPosition());
         telemetry.addData("spinner2", modules.spinner.getTarget());
         telemetry.addData("spin", spin);
+        telemetry.addData("robotToGoalVector", control.robotToGoalVector);
+        telemetry.addData("anglenorm", control.anglenorm);
+        telemetry.addData("anglelocal", control.anglelocal);
+        telemetry.addData("alpha", control.alpha);
+        telemetry.addData("spin", spin);
+        telemetry.addData("angle",Math.toDegrees( control.realangle));
+        telemetry.addData("angle",control.realspeed);
+        telemetry.addData("angle",control.flywheelSpeed);
         telemetry.update();
     }
 }

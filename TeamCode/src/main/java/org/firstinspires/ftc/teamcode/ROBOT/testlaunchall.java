@@ -84,8 +84,8 @@ public class testlaunchall extends OpMode {
         Vector robotToGoalVector = new Vector(  new Pose(ShooterConstants.GOAL_POS_RED.getX()-odo.getPosX(DistanceUnit.INCH) ,ShooterConstants.GOAL_POS_RED.getY()-odo.getPosY(DistanceUnit.INCH) ) );
         double g = 32.174 * 12;
         double x = robotToGoalVector.getMagnitude() - ShooterConstants.PASS_THROUGH_POINT_RADIUS;
-        double y = ShooterConstants.SCORE_HEIGHT;
-        double a = ShooterConstants.SCORE_ANGLE;
+        double y = ShooterConstants.SCORE_HEIGHT_FAR;
+        double a = ShooterConstants.SCORE_ANGLE_FAR;
 
 //calculate initial launch components
         double hoodAngle = MathFunctions.clamp(Math.atan(2 * y / x - Math.tan(a)), Math.toRadians(30),

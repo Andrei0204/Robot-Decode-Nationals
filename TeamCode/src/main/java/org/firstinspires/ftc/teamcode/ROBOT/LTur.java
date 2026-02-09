@@ -15,10 +15,12 @@ public class LTur implements IRobotModule, IStateBasedModule {
     public static double target = 0; //cm
     public static double startpos = 0;
     public static double auto = 0.3;
-    double start = 37;
+    public static   double angle = 104;
+    public static   double ticks = 0.00297;
     private static boolean ENABLED = true;
 
     public DcMotor turret = null;
+
 
 
     public Servo T1  ;
@@ -89,10 +91,10 @@ public class LTur implements IRobotModule, IStateBasedModule {
 
     public void setangle(double angle)
     {
-        angle =angle+105;
+        angle =angle+this.angle;
         double upmax=0.85;
         double downmax=0;
-        double tickstodegree=0.002931;
+        double tickstodegree=ticks  ;
         this.auto  =angle*tickstodegree ;
         if(auto<downmax)
             auto=downmax;

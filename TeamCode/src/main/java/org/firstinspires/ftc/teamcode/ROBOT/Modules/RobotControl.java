@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.ROBOT.Modules;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.util.InterpLUT;
+import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.gamepad.GamepadManager;
 import com.bylazar.gamepad.PanelsGamepad;
 import com.pedropathing.geometry.Pose;
@@ -16,6 +17,9 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.ROBOT.Spinner;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IRobotModule;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.gamepads.StickyGamepad;
+import org.opencv.core.Mat;
+
+@Configurable
 
 @Config
 public class RobotControl implements IRobotModule {
@@ -26,20 +30,25 @@ public class RobotControl implements IRobotModule {
     ElapsedTime timer;
     GoBildaPinpointDriver odo; // Declare OpMode member for the Odometry Compu
     public double flywheelSpeed = 0;
-    public static double far = 0;
-    public static double rec = 1.11;
+    public static double far = 1;
+    public static double rec = 0.25;
+    public static double recf = 0.25;
+    public static double recc = 0.5;
     public static double tresh = 0;
 
 
     public static int farcases = 0;
-    public static double counter = 270;
+    public static double alpha = 0;
+    public static double anglelocal = 0;
+    public static double anglenorm = 0;
+    public static Vector robotToGoalVector = new Vector();
+    public static double counter = 275;
     public static double farthrow = 0;
+    public static double minus = 1;
+    public static double realangle = 0;
+    public static double realspeed = 0;
+
     int spin = 0;
-
-
-
-    private final GamepadManager g1Manager = PanelsGamepad.INSTANCE.getFirstManager();
-    private final GamepadManager g2Manager = PanelsGamepad.INSTANCE.getSecondManager();
 
 
     public RobotControl(Gamepad gamepad1, Gamepad gamepad2, RoboModules modules, GoBildaPinpointDriver odo) {
@@ -50,8 +59,7 @@ public class RobotControl implements IRobotModule {
         timer = new ElapsedTime();
         this.modules = modules;
         this.odo = odo;
-        g1Manager.asCombinedFTCGamepad(gamepad1);
-        g2Manager.asCombinedFTCGamepad(gamepad2);
+
 
     }
 
@@ -101,7 +109,7 @@ public class RobotControl implements IRobotModule {
 
 
         if (gamepad1.dpadLeftWasPressed()) {
-            farcases=0;
+            farcases = 0;
             farthrow = 1;
             modules.spinner.setAuto(120);
             timer.reset();
@@ -118,7 +126,7 @@ public class RobotControl implements IRobotModule {
 
                 case 1:
 
-                    if(timer.milliseconds()>counter ){
+                    if (timer.milliseconds() > counter) {
                         modules.spinner.setAuto(220);
                         farcases++;
                         timer.reset();
@@ -126,7 +134,7 @@ public class RobotControl implements IRobotModule {
                     break;
                 case 2:
 
-                    if (timer.milliseconds() > counter+50) {
+                    if (timer.milliseconds() > counter ) {
                         modules.spinner.setAuto(320);
                         farcases++;
                         farthrow = 0;
@@ -156,12 +164,19 @@ public class RobotControl implements IRobotModule {
 
     public void UpLaunch() {
 
-        Vector robotToGoalVector = new Vector(new Pose(ShooterConstants.GOAL_POS_RED.getX() - odo.getPosX(DistanceUnit.INCH), ShooterConstants.GOAL_POS_RED.getY() - odo.getPosY(DistanceUnit.INCH)));
+        robotToGoalVector = new Vector(new Pose(ShooterConstants.GOAL_POS_RED.getX() - odo.getPosX(DistanceUnit.INCH), ShooterConstants.GOAL_POS_RED.getY() - odo.getPosY(DistanceUnit.INCH)));
         double g = 32.174 * 12;
         double x = robotToGoalVector.getMagnitude() - ShooterConstants.PASS_THROUGH_POINT_RADIUS;
-        double y = ShooterConstants.SCORE_HEIGHT;
-        double a = ShooterConstants.SCORE_ANGLE;
+        double y = ShooterConstants.SCORE_HEIGHT_CLOSE;
+        double a = ShooterConstants.SCORE_ANGLE_CLOSE;
+        rec=recc;
+        if(robotToGoalVector.getMagnitude()>110)
+        {
 
+            rec=recf;
+            y=ShooterConstants.SCORE_HEIGHT_FAR;
+            a=ShooterConstants.SCORE_ANGLE_FAR;
+        }
 //calculate initial launch components
         double hoodAngle = MathFunctions.clamp(Math.atan(2 * y / x - Math.tan(a)), Math.toRadians(30),
                 Math.toRadians(65));
@@ -175,24 +190,26 @@ public class RobotControl implements IRobotModule {
                 modules.pivot.setangle(90 - Math.toDegrees(hoodAngle));
         } else
             modules.pivot.setangle(90 - Math.toDegrees(hoodAngle));
-        if (modules.launcher.Motorvel() > modules.launcher.getLaunchtoRpm(flywheelSpeed) * 100 + 1) {
-            modules.launcher.setAuto(modules.launcher.getLaunchtoRpm(flywheelSpeed) - 0.03);
-        } else
-            modules.launcher.LaunchtoRpm(flywheelSpeed);
 
-        double deltax = +odo.getPosX(DistanceUnit.INCH) - ShooterConstants.GOAL_POS_RED.getX();
-        double deltay = -odo.getPosY(DistanceUnit.INCH) + ShooterConstants.GOAL_POS_RED.getY();
+        modules.launcher.LaunchtoRpm(flywheelSpeed);
 
-        double impartire = deltay / deltax;
-        double alpha = -Math.atan(impartire);
+//         deltax = +ShooterConstants.GOAL_POS_RED.getX() - odo.getPosX(DistanceUnit.INCH);
+//         deltay = ShooterConstants.GOAL_POS_RED.getY() - odo.getPosY(DistanceUnit.INCH);
+//
+//        double impartire = deltay / deltax;
+//        if (gamepad1.dpad_right) {
 
-        double anglelocal = odo.getHeading(AngleUnit.RADIANS) - alpha;
-        double anglenorm = Math.toDegrees(normalizaion(anglelocal));
-        if (anglenorm <= -140)
-            anglenorm += 360;
+        alpha = robotToGoalVector.getTheta();
+
+
+        anglelocal = odo.getHeading(AngleUnit.RADIANS) - alpha;
+        anglenorm = Math.toDegrees(MathFunctions.normalizeAngle(anglelocal));
+
+        if (anglenorm >= 220)
+            anglenorm -= 360;
 
         modules.lTur.setangle(+anglenorm);
-
+//    }
 
     }
 
@@ -207,3 +224,14 @@ public class RobotControl implements IRobotModule {
         UpLaunch();
     }
 }
+//        double dis = Math.pow(realspeed, 4) -( g * ((g * x * x) + (2 * y * realspeed * realspeed)));
+//        if (dis >= 0) {
+//            realangle = Math.atan((realspeed * realspeed - Math.sqrt(dis) * minus) / (g * x));
+//            modules.pivot.setangle(90 - Math.toDegrees(realangle));
+//        } else
+//            modules.pivot.setangle(90 - Math.toDegrees(hoodAngle));
+
+
+//        if (modules.launcher.Motorvel() > modules.launcher.getLaunchtoRpm(flywheelSpeed) * 100 + 1) {
+//            modules.launcher.setAuto(modules.launcher.getLaunchtoRpm(flywheelSpeed) - 0.03);
+//        } else

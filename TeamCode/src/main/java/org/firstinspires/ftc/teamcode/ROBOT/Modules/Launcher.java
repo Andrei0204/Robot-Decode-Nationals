@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.ROBOT.Modules;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -27,10 +28,12 @@ import org.slf4j.LoggerFactory;
 //public static double kP = 0.2, kI = 0, kD = 0, kf = 0; //TODO Valori PID!!!!
 //
 @Config
+@Configurable
+
 public class Launcher implements IStateBasedModule, IRobotModule {
 
-    public static  double m = 10.681;
-public static double n = 350;
+    public static  double m = 10.8;
+public static double n = 93;
     private static final Logger log = LoggerFactory.getLogger(Launcher.class);
     public static double TICKS_PER_REV = 28;
 
@@ -39,8 +42,10 @@ public static double n = 350;
     public static double autopose = 0;
     public static double target = 0; //cm
     public static double currentPosition = startpos;
-    public static double kP = 0.16, kI = 0, kD = 0, kf = 0; //TODO Valori PID!!!!
-    public static double kS = 0, kV = 1.15;
+    public static double kP = 0.7, kI = 0, kD = 0, kf = 0; //TODO Valori PID!!!!
+    public static double kS = 0, kV = 2.9,kA=0,counter=0.01;
+    public static double kv2=0.9,kp2=0.6;
+    public static double kvd=0.05   ,kpd=0.2;
 
     private static boolean ENABLED = true;
 
@@ -93,6 +98,10 @@ public double getLaunchtoRpm(double velocity)
     return ((m * velocity + n) / 60 )/ 100;
 }
 
+public double getSpeed()
+    {
+        return ((Motorvel()*60 -n) /m);
+    }
 
     public double getAmps1(){
         return ((DcMotorEx) motorOne).getCurrent(CurrentUnit.AMPS);    }
@@ -213,12 +222,31 @@ public double getLaunchtoRpm(double velocity)
 
 
             case PID:
+                if(-Motorvel()/100>target+counter) {
+                    launcher.setVeloCoefficients(kP, kI, kD);
+                    launcher2.setVeloCoefficients(kP, kI, kD);
 
-                launcher.setVeloCoefficients(kP, kI, kD);
-                launcher2.setVeloCoefficients(kP, kI, kD);
+                    launcher.setFeedforwardCoefficients(kS + actualKs, kV, kA);
+                    launcher2.setFeedforwardCoefficients(kS + actualKs, kV, kA);
+                }
+                else if(
+                        -Motorvel()/100<target-counter
+                )
+                {
+                    launcher.setVeloCoefficients(kpd, kI, kD);
+                    launcher2.setVeloCoefficients(kpd, kI, kD);
 
-                launcher.setFeedforwardCoefficients(kS + actualKs, kV);
-                launcher2.setFeedforwardCoefficients(kS + actualKs, kV);
+                    launcher.setFeedforwardCoefficients(kS + actualKs, kvd, kA);
+                    launcher2.setFeedforwardCoefficients(kS + actualKs, kvd, kA);
+                }
+                else
+                {
+                    launcher.setVeloCoefficients(kp2, kI, kD);
+                    launcher2.setVeloCoefficients(kp2, kI, kD);
+
+                    launcher.setFeedforwardCoefficients(kS + actualKs, kv2, kA);
+                    launcher2.setFeedforwardCoefficients(kS + actualKs, kv2, kA);
+                }
                 launcher.set(target);
                 launcher2.set(target);
 

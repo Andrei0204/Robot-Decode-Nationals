@@ -1,10 +1,7 @@
 package org.firstinspires.ftc.teamcode.ROBOT.Modules;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.util.InterpLUT;
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.gamepad.GamepadManager;
-import com.bylazar.gamepad.PanelsGamepad;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
@@ -16,13 +13,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.ROBOT.Spinner;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IRobotModule;
-import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.gamepads.StickyGamepad;
 import org.opencv.core.Mat;
 
 @Configurable
 
 @Config
-public class RobotControl implements IRobotModule {
+public class  RobotControl implements IRobotModule {
     Gamepad gamepad1, gamepad2;
     public RoboModules modules = null;
     ElapsedTime backtime;
@@ -30,23 +26,29 @@ public class RobotControl implements IRobotModule {
     ElapsedTime timer;
     GoBildaPinpointDriver odo; // Declare OpMode member for the Odometry Compu
     public double flywheelSpeed = 0;
-    public static double far = 1;
-    public static double rec = 0.25;
-    public static double recf = 0.25;
-    public static double recc = 0.5;
-    public static double tresh = 0;
-
-
-    public static int farcases = 0;
-    public static double alpha = 0;
-    public static double anglelocal = 0;
-    public static double anglenorm = 0;
     public static Vector robotToGoalVector = new Vector();
-    public static double counter = 275;
-    public static double farthrow = 0;
-    public static double minus = 1;
-    public static double realangle = 0;
-    public static double realspeed = 0;
+    public double counter = 0;
+    public static double shooting = 0;
+
+    public static double compensation = 1;
+    public  double rec = 0.25;
+    public static double recf = 0.25;
+    public static double recc = 0.4;
+    public static double counterf = 175;
+    public static double counterc = 150;
+    public static double magnitude = 110;
+    public int shootingcase = 0;
+
+    public static int swm = 0;
+    public static int minus = 1;
+
+
+
+
+    public  double alpha = 0;
+    public  double anglelocal = 0;
+    public  double anglenorm = 0;
+
 
     int spin = 0;
 
@@ -102,33 +104,33 @@ public class RobotControl implements IRobotModule {
             modules.spinner.setManualPower(-gamepad1.left_trigger);
         } else {
 
-//            modules.spinner.setRunMode(Spinner.EXTRUNMODE.MANUAL);
+//
             modules.spinner.setManualPower(0);
 
         }
 
 
         if (gamepad1.dpadLeftWasPressed()) {
-            farcases = 0;
-            farthrow = 1;
+            shootingcase = 0;
+            shooting = 1;
             modules.spinner.setAuto(120);
             timer.reset();
             modules.spinner.setRunMode(Spinner.EXTRUNMODE.PID);
             modules.spinner.setState(Spinner.State.TEST);
         }
-        if (farthrow == 1) {
+        if (shooting == 1) {
 
-            switch (farcases) {
+            switch (shootingcase) {
                 case 0:
 
-                    farcases++;
+                    shootingcase++;
                     break;
 
                 case 1:
 
                     if (timer.milliseconds() > counter) {
                         modules.spinner.setAuto(220);
-                        farcases++;
+                        shootingcase++;
                         timer.reset();
                     }
                     break;
@@ -136,9 +138,9 @@ public class RobotControl implements IRobotModule {
 
                     if (timer.milliseconds() > counter ) {
                         modules.spinner.setAuto(320);
-                        farcases++;
-                        farthrow = 0;
-                        farcases = 0;
+                        shootingcase++;
+                        shooting = 0;
+                        shootingcase = 0;
                     }
                     break;
 
@@ -170,9 +172,10 @@ public class RobotControl implements IRobotModule {
         double y = ShooterConstants.SCORE_HEIGHT_CLOSE;
         double a = ShooterConstants.SCORE_ANGLE_CLOSE;
         rec=recc;
-        if(robotToGoalVector.getMagnitude()>110)
+        counter=counterc;
+        if(robotToGoalVector.getMagnitude()>magnitude)
         {
-
+            counter=counterf;
             rec=recf;
             y=ShooterConstants.SCORE_HEIGHT_FAR;
             a=ShooterConstants.SCORE_ANGLE_FAR;
@@ -183,7 +186,27 @@ public class RobotControl implements IRobotModule {
 
         flywheelSpeed = Math.sqrt(g * x * x / (2 * Math.pow(Math.cos(hoodAngle), 2) * (x * Math.tan(hoodAngle) - y)));
 
-        if (far == 1) {
+
+        Vector robotVelocity = new Vector(new Pose(odo.getVelX(DistanceUnit.INCH), odo.getVelY(DistanceUnit.INCH))) ;
+        double coordinateTheta = robotVelocity.getTheta()-robotToGoalVector.getTheta();
+        double parallelComponent= -Math.cos(coordinateTheta) * robotVelocity.getMagnitude();
+        double perpendicularComponent= Math.sin(coordinateTheta) * robotVelocity.getMagnitude();
+
+        double vz=flywheelSpeed* Math.sin(hoodAngle);
+        double time = x/(flywheelSpeed*Math.cos(hoodAngle));
+        double ivr= x/time + parallelComponent;
+        double nvr= Math.sqrt(ivr*ivr +perpendicularComponent *perpendicularComponent);
+        double ndr= nvr*time;
+        double turretVelComp=0;
+        if(swm==1) {
+            hoodAngle = MathFunctions.clamp(Math.atan(vz / nvr), Math.toRadians(30), Math.toRadians(65));
+            flywheelSpeed = Math.sqrt(g * ndr * ndr / (2 * Math.pow(Math.cos(hoodAngle), 2) * (ndr * Math.tan(hoodAngle)-y)));
+            turretVelComp= Math.atan(perpendicularComponent/ivr);
+
+        }
+
+
+        if (compensation == 1) {
             if (modules.launcher.Motorvel() < modules.launcher.getLaunchtoRpm(flywheelSpeed) * 100 - 1)
                 modules.pivot.setangle(90 - Math.toDegrees(hoodAngle) - rec * (modules.launcher.getLaunchtoRpm(flywheelSpeed) * 100 - modules.launcher.Motorvel()));
             else
@@ -193,17 +216,9 @@ public class RobotControl implements IRobotModule {
 
         modules.launcher.LaunchtoRpm(flywheelSpeed);
 
-//         deltax = +ShooterConstants.GOAL_POS_RED.getX() - odo.getPosX(DistanceUnit.INCH);
-//         deltay = ShooterConstants.GOAL_POS_RED.getY() - odo.getPosY(DistanceUnit.INCH);
-//
-//        double impartire = deltay / deltax;
-//        if (gamepad1.dpad_right) {
-
         alpha = robotToGoalVector.getTheta();
-
-
         anglelocal = odo.getHeading(AngleUnit.RADIANS) - alpha;
-        anglenorm = Math.toDegrees(MathFunctions.normalizeAngle(anglelocal));
+        anglenorm = Math.toDegrees(MathFunctions.normalizeAngle(anglelocal) +minus*turretVelComp);
 
         if (anglenorm >= 220)
             anglenorm -= 360;
@@ -213,9 +228,6 @@ public class RobotControl implements IRobotModule {
 
     }
 
-    public double normalizaion(double angle) {
-        return (angle + Math.PI) % (2 * Math.PI) - Math.PI;
-    }
 
     @Override
     public void update() {

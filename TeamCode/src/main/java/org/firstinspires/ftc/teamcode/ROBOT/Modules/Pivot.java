@@ -8,7 +8,7 @@ import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.CoolMotor;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IRobotModule;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IStateBasedModule;
 
-public class Pivot implements IRobotModule, IStateBasedModule {
+public class        Pivot implements IRobotModule, IStateBasedModule {
     public static double target = 0; //cm
     public static double startpos = 0.4;
     public static double auto = 0.5;

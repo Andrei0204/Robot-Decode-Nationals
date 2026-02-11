@@ -113,8 +113,7 @@ public class Teleop extends OpMode {
         telemetry.addData("anglelocal", control.anglelocal);
         telemetry.addData("alpha", control.alpha);
         telemetry.addData("spin", spin);
-        telemetry.addData("angle",Math.toDegrees( control.realangle));
-        telemetry.addData("angle",control.realspeed);
+
         telemetry.addData("angle",control.flywheelSpeed);
         telemetry.update();
     }

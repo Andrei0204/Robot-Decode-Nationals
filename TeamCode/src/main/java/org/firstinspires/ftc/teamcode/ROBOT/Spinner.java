@@ -30,7 +30,7 @@ public class Spinner implements IStateBasedModule, IRobotModule {
     public static double jiggb = -5;
     public static double target = 0; //cm
     public static double currentPosition = startpos;
-    public static double kP = 0.01, kI = 0, kD = 0.0005; //TODO Valori PID!!!!
+    public static double kP = 0.0095 , kI = 0, kD = 0.00073; //TODO Valori PID!!!!
     public static double f = 0;
 
     private static boolean ENABLED = true;

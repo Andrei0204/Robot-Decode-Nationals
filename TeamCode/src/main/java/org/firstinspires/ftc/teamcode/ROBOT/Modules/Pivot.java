@@ -8,6 +8,8 @@ import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.CoolMotor;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IRobotModule;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IStateBasedModule;
 
+import javax.xml.namespace.QName;
+
 public class        Pivot implements IRobotModule, IStateBasedModule {
     public static double target = 0; //cm
     public static double startpos = 0.4;
@@ -63,15 +65,21 @@ public class        Pivot implements IRobotModule, IStateBasedModule {
 
     public void setangle(double angle)
     {
-        double max =1;
-        double min=0.1;
-        double degmin=25;
-        double degmax=58;
-        auto =max+(angle-degmin)/(degmax-degmin)*(min-max);
-        if(auto<0.08)
-            auto=0.08;
-        if(auto>1)
-            auto=1;
+        if(angle ==angle) {
+
+
+            double max = 1;
+            double min = 0.1;
+            double degmin = 25;
+            double degmax = 58;
+            auto = max + (angle - degmin) / (degmax - degmin) * (min - max);
+            if (auto < 0.08)
+                auto = 0.08;
+            if (auto > 1)
+                auto = 1;
+        }
+        else
+            auto=0.5;
     }
     @Override
     public void update() {

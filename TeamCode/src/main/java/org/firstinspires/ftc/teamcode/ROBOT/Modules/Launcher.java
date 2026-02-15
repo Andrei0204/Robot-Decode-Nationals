@@ -32,8 +32,8 @@ import org.slf4j.LoggerFactory;
 
 public class Launcher implements IStateBasedModule, IRobotModule {
 
-    public static  double m = 10.8;
-public static double n = 93;
+    public static double m = 10.8;
+    public static double n = 93;
     private static final Logger log = LoggerFactory.getLogger(Launcher.class);
     public static double TICKS_PER_REV = 28;
 
@@ -43,9 +43,9 @@ public static double n = 93;
     public static double target = 0; //cm
     public static double currentPosition = startpos;
     public static double kP = 0.7, kI = 0, kD = 0, kf = 0; //TODO Valori PID!!!!
-    public static double kS = 0, kV = 2.9,kA=0,counter=0.01;
-    public static double kv2=0.9,kp2=0.6;
-    public static double kvd=0.05   ,kpd=0.2;
+    public static double kS = 0, kV = 2.9, kA = 0, counter = 0.025;
+    public static double kv2 = 0.9, kp2 = 0.6;
+    public static double kvd = -0.2, kpd = -0.1;
 
     private static boolean ENABLED = true;
 
@@ -57,13 +57,14 @@ public static double n = 93;
     public EXTRUNMODE runMode;
     VoltageSensor voltage;
 
-    public    Motor launcher;
+    public Motor launcher;
 
-    public     DcMotor motorOne;
-    public     Motor launcher2;
+    public DcMotor motorOne;
+    public Motor launcher2;
     public DcMotor motorTwo;
 
     double actualKs = 0;
+
     public Launcher(HardwareMap hardwareMap, State initialState) {
         Motor encoder;
         if (!ENABLED) {
@@ -89,28 +90,38 @@ public static double n = 93;
         this.state = initialState;
     }
 
-public void LaunchtoRpm(double velocity) {
-    setAuto(((m * velocity + n) / 60 )/ 100
-    );
-}
-public double getLaunchtoRpm(double velocity)
-{
-    return ((m * velocity + n) / 60 )/ 100;
-}
-
-public double getSpeed()
-    {
-        return ((Motorvel()*60 -n) /m);
+    public void LaunchtoRpm(double velocity) {
+        if (velocity == velocity)
+            setAuto(((m * velocity + n) / 60) / 100
+            );
+        else
+            setAuto(0.4);
     }
 
-    public double getAmps1(){
-        return ((DcMotorEx) motorOne).getCurrent(CurrentUnit.AMPS);    }
-    public double getpow1(){
-        return ( motorOne).getPower();    }
-    public double getpow2(){
-        return ( motorTwo).getPower();    }
-    public double getAmps2(){
-        return ((DcMotorEx) motorTwo).getCurrent(CurrentUnit.AMPS);    }
+    public double getLaunchtoRpm(double velocity) {
+        return ((m * velocity + n) / 60) / 100;
+    }
+
+    public double getSpeed() {
+        return ((Motorvel() * 60 - n) / m);
+    }
+
+    public double getAmps1() {
+        return ((DcMotorEx) motorOne).getCurrent(CurrentUnit.AMPS);
+    }
+
+    public double getpow1() {
+        return (motorOne).getPower();
+    }
+
+    public double getpow2() {
+        return (motorTwo).getPower();
+    }
+
+    public double getAmps2() {
+        return ((DcMotorEx) motorTwo).getCurrent(CurrentUnit.AMPS);
+    }
+
     public void setAuto(double auto) {
         autopose = -auto;
     }
@@ -222,25 +233,21 @@ public double getSpeed()
 
 
             case PID:
-                if(-Motorvel()/100>target+counter) {
+                if (-Motorvel() / 100 > target + counter) {
                     launcher.setVeloCoefficients(kP, kI, kD);
                     launcher2.setVeloCoefficients(kP, kI, kD);
 
                     launcher.setFeedforwardCoefficients(kS + actualKs, kV, kA);
                     launcher2.setFeedforwardCoefficients(kS + actualKs, kV, kA);
-                }
-                else if(
-                        -Motorvel()/100<target-counter
-                )
-                {
+                } else if (
+                        -Motorvel() / 100 < target - counter
+                ) {
                     launcher.setVeloCoefficients(kpd, kI, kD);
                     launcher2.setVeloCoefficients(kpd, kI, kD);
 
                     launcher.setFeedforwardCoefficients(kS + actualKs, kvd, kA);
                     launcher2.setFeedforwardCoefficients(kS + actualKs, kvd, kA);
-                }
-                else
-                {
+                } else {
                     launcher.setVeloCoefficients(kp2, kI, kD);
                     launcher2.setVeloCoefficients(kp2, kI, kD);
 

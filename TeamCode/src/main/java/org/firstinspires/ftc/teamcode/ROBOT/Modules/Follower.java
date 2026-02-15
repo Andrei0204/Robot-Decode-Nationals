@@ -27,10 +27,12 @@ public class Follower {
     CoolMotor frontLeft, frontRight, backLeft, backRight;
     boolean frontLeftMotorReversed , frontRightMotorReversed=true, backLeftMotorReversed , backRightMotorReversed=true;
     PIDController tpid = new PIDController(0,0,0), hpid = new PIDController(0,0,0);
-    public static double kp = 0.065, ki = 0.004, kd = 0.016     , kph = 1, kih = 0, kdh = 0.1;
+    public static double kp = 0.08, ki = 0.00, kd = 0.024
+            ,
+            kph = 0.8, kih = 0, kdh = 0.;
     Vector power = new Vector(0,0);
     public static double velocityThreshold = 3.5 ;
-    public static double lateralmultiplier = 1 ;
+    public static double lateralmultiplier = 1.2 ;
     public static double overallmulti = 1 ;
 
     double headingPower = 0;
@@ -38,10 +40,10 @@ public class Follower {
     public Follower(HardwareMap hardwareMap,GoBildaPinpointDriver odo) {
         lateralmultiplier=1;
         this.odo=odo;
-        frontLeft = new CoolMotor(hardwareMap.get(DcMotorEx.class, "FL"), CoolMotor.RunMode.RUN, false);
+        frontLeft = new CoolMotor(hardwareMap.get(DcMotorEx.class, "FL"), CoolMotor.RunMode.RUN, true);
         frontRight = new CoolMotor(hardwareMap.get(DcMotorEx.class, "FR"), CoolMotor.RunMode.RUN, false);
         backLeft = new CoolMotor(hardwareMap.get(DcMotorEx.class, "BL"), CoolMotor.RunMode.RUN, true);
-        backRight = new CoolMotor(hardwareMap.get(DcMotorEx.class, "BR"), CoolMotor.RunMode.RUN, true);
+        backRight = new CoolMotor(hardwareMap.get(DcMotorEx.class, "BR"), CoolMotor.RunMode.RUN, false);
     }
     public Follower(HardwareMap hardwareMap) {
         lateralmultiplier=1;
@@ -103,14 +105,14 @@ public class Follower {
 
     }
     public void updateteleop() {
-        double x = target.getX(),
-                y = target.getY(),
+        double x = target.getY(),
+                y = target.getX(),
                 rot = target.getHeading();
-
-        frontLeft.setPower(y + x + rot);
-        frontRight.setPower(y - x - rot);
-        backLeft.setPower(y - x + rot);
-        backRight.setPower(y + x - rot);
+        double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rot), 1);
+        frontLeft.setPower((y - x + rot)/denominator);
+        frontRight.setPower((y + x - rot)/denominator);
+        backLeft.setPower((y + x + rot)/denominator);
+        backRight.setPower((y-  x - rot)/denominator);
         frontLeft.update();
         frontRight.update();
         backLeft.update();
@@ -119,40 +121,40 @@ public class Follower {
 
 
     public void updatePath() {
-        odo.update();
-        Pose2D odoplm  =odo.getPosition();
-        localization = new Pose(odoplm.getX(DistanceUnit.CM), odoplm.getY(DistanceUnit.CM), odoplm.getHeading(AngleUnit.RADIANS));
-        double xDiff = target.getX() - localization.getX();
-        double yDiff = target.getY() - localization.getY();
-        double angle = Math.atan2(yDiff, xDiff);
-        double movementError = Math.hypot(xDiff, yDiff);
-        tpid.setPID(kp, ki, kd);
-        hpid.setPID(kph, kih, kdh);
-        double translationalPower = tpid.calculate(-movementError, 0);
-        power = Vector.fromAngleAndMagnitude(angle, translationalPower);
-        power = Vector.rotateBy(power, localization.getHeading());
-        double max = Math.max(Math.abs(power.getX()), Math.abs(power.getY()));
-        if (max < 1)
-            max = 1;
-        power = new Vector(
-                power.getX() / max,
-                power.getY()*lateralmultiplier / max
-        );
-        double headingDiff = Angles.normalize(target.getHeading() - localization.getHeading());
-        headingPower = hpid.calculate(-headingDiff);
-        power.scaleBy(overallmulti);
+        Pose2D odoplm = odo.getPosition();
+        if (odoplm == odoplm) {
+            localization = new Pose(odoplm.getX(DistanceUnit.INCH), odoplm.getY(DistanceUnit.INCH), odoplm.getHeading(AngleUnit.RADIANS));
+            double xDiff = target.getX() - localization.getX();
+            double yDiff = target.getY() - localization.getY();
+            double angle = Math.atan2(yDiff, xDiff);
+            double movementError = Math.hypot(xDiff, yDiff);
+            tpid.setPID(kp, ki, kd);
+            hpid.setPID(kph, kih, kdh);
+            double translationalPower = tpid.calculate(-movementError, 0);
+            power = Vector.fromAngleAndMagnitude(angle, translationalPower);
+            power = Vector.rotateBy(power, localization.getHeading());
+            double max = Math.max(Math.abs(power.getX()), Math.abs(power.getY()));
+            if (max < 1)
+                max = 1;
+            power = new Vector(
+                    power.getX() / max,
+                    power.getY() * lateralmultiplier / max
+            );
+            double headingDiff = Angles.normalize(target.getHeading() - localization.getHeading());
+            headingPower = hpid.calculate(-headingDiff);
+            power.scaleBy(overallmulti);
+        }
     }
-
     public void updateMotors() {
-        double x =power.getX(),
-                y =power.getY() ,
+        double x =power.getY(),
+                y =power.getX() ,
 //        power.getY(),
                 rot = headingPower;
 
-        frontLeft.setPower(y + x + rot);
-        frontRight.setPower(y - x + rot);
-        backLeft.setPower(y - x - rot);
-        backRight.setPower(y + x - rot);
+        frontLeft.setPower(y - x - rot);
+        frontRight.setPower(y + x + rot);
+        backLeft.setPower(y + x -rot);
+        backRight.setPower(y - x + rot);
         frontLeft.update();
         frontRight.update();
         backLeft.update();

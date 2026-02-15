@@ -91,15 +91,19 @@ public class LTur implements IRobotModule, IStateBasedModule {
 
     public void setangle(double angle)
     {
-        angle =angle+this.angle;
-        double upmax=0.85;
-        double downmax=0;
-        double tickstodegree=ticks  ;
-        this.auto  =angle*tickstodegree ;
-        if(auto<downmax)
-            auto=downmax;
-        if(auto>upmax)
-            auto=upmax;
+        if(angle==angle ) {
+            angle = angle + this.angle;
+
+            double upmax = 0.85;
+            double downmax = 0;
+            double tickstodegree = ticks;
+            this.auto = angle * tickstodegree;
+            if (auto < downmax)
+                auto = downmax;
+            if (auto > upmax)
+                auto = upmax;
+        }
+        else angle=0;
     }
     @Override
     public void update() {

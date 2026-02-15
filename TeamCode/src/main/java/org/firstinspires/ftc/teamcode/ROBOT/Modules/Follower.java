@@ -27,11 +27,11 @@ public class Follower {
     CoolMotor frontLeft, frontRight, backLeft, backRight;
     boolean frontLeftMotorReversed , frontRightMotorReversed=true, backLeftMotorReversed , backRightMotorReversed=true;
     PIDController tpid = new PIDController(0,0,0), hpid = new PIDController(0,0,0);
-    public static double kp = 0.08, ki = 0.00, kd = 0.024
+    public static double kp = 0.08, ki = 0.001, kd = 0.0265
             ,
-            kph = 0.8, kih = 0, kdh = 0.;
+            kph = 0.6, kih = 0, kdh = 0.;
     Vector power = new Vector(0,0);
-    public static double velocityThreshold = 3.5 ;
+    public static double velocityThreshold =3.7  ;
     public static double lateralmultiplier = 1.2 ;
     public static double overallmulti = 1 ;
 
@@ -85,8 +85,7 @@ public class Follower {
         while (diff < -Math.PI) diff += Math.PI * 2.0;
         return Math.abs(diff) <= tolerance;
     }
-    public boolean stopped() {
-        return (Math.abs(odo.getVelX(DistanceUnit.CM) )<= velocityThreshold &&Math.abs( odo.getVelY(DistanceUnit.CM)) <= velocityThreshold  ) && reachedTarget(7);
+    public boolean stopped() {        return (Math.abs(odo.getVelX(DistanceUnit.CM) )<= velocityThreshold &&Math.abs( odo.getVelY(DistanceUnit.CM)) <= velocityThreshold  ) && reachedTarget(7);
     }
     public boolean fullstop() {
         return (Math.abs(odo.getVelX(DistanceUnit.CM) )<= 0.2 &&Math.abs( odo.getVelY(DistanceUnit.CM)) <= 0.2  ) && reachedTarget(4);

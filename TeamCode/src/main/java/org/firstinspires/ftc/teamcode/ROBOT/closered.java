@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.GoBildaPinpointDriver;
@@ -29,9 +30,11 @@ public class closered extends OpMode {
     int shootingcase = 0;
     int shooting = 1;
     int isstuck = 0;
+    double stuckpos = 0;
     int cycles = 1;
     public static double distance = 100;
     ElapsedTime shootingtimer;
+    ElapsedTime isstucktimer;
     ElapsedTime current;
 
     public static double x = -6, y = -148;
@@ -43,16 +46,18 @@ public class closered extends OpMode {
     double auto = 0;
 
     Pose START = new Pose(110.5, 131.6, Math.toRadians(0));
-    Pose LAUNCH = new Pose(89.9, 81.1 , Math.toRadians(0));
+    Pose LAUNCH = new Pose(92, 81.1, Math.toRadians(0));
     Pose LINIA1 = new Pose(101.0, 81.5, Math.toRadians(0));
-    Pose LINIA1C = new Pose(130, 81.5, Math.toRadians(0));
+    Pose LINIA1C = new Pose(133, 81.5, Math.toRadians(0));
     Pose LINIA2 = new Pose(101.0, 54.3, Math.toRadians(0));
-    Pose LINIA2C = new Pose(128.0, 54.3, Math.toRadians(0));
-    Pose LINIA3 = new Pose(101.0, 33.3, Math.toRadians(0));
-    Pose GATE1 = new Pose(130, 53, Math.toRadians(22));
+    Pose LINIA2C = new Pose(139, 54.3, Math.toRadians(0));
+    Pose LINIA3 = new Pose(101.0, 30.3, Math.toRadians(0));
+    Pose LINIA3C = new Pose(139, 30.3, Math.toRadians(0));
+    Pose GATE1 = new Pose(131, 69, Math.toRadians(0));
+    Pose GATE2 = new Pose(134, 47, Math.toRadians(30));
     //    Pose GATE1 = new Pose(132, 52.5, Math.toRadians(31));
-    Pose GATEOTW = new Pose(100, 51, Math.toRadians(0));
-    Pose GATE2 = new Pose(132, 50, Math.toRadians(29));
+    Pose GATEOTW = new Pose(100, 54, Math.toRadians(0));
+    //    Pose GATE2 = new Pose(133, 52, Math.toRadians(45));
     //    Pose GATE2 = new Pose(135, 46.8, Math.toRadians(55));
     Pose PARK = new Pose(108.0, 79.0, Math.toRadians(0));
 
@@ -67,6 +72,7 @@ public class closered extends OpMode {
         follower = new Follower(hardwareMap, odo);
         timer = new ElapsedTime();
         current = new ElapsedTime();
+        isstucktimer = new ElapsedTime();
         modules = new RoboModules(hardwareMap);
         control = new RobotControl(gamepad1, gamepad2, modules, odo);
 
@@ -121,7 +127,7 @@ public class closered extends OpMode {
                 break;
             case COLLECTSECOND:
                 follower.setTarget(LINIA2C);
-                follower.overallmulti = 0.25;
+                follower.overallmulti = 0.8;
                 if (follower.reachedTarget(8)) {
                     setCases(CASES.LAUNCHSEC);
                     follower.overallmulti = 1;
@@ -139,7 +145,7 @@ public class closered extends OpMode {
                 if (shooting == 0) {
                     shootingcase = 0;
                     shooting = 1;
-                    if(cycles<=2)
+                    if (cycles <= 2)
                         setCases(CASES.TOGATE);
                     else
                         setCases(CASES.GOTOFIRST);
@@ -148,15 +154,16 @@ public class closered extends OpMode {
             case TOGATE:
 //                control.setSwm(0);
                 follower.setTarget(GATEOTW);
+                modules.intake.setManualPower(-1);
                 if (follower.reachedTarget(15)) {
-                    follower.overallmulti = 0.7;
-                    modules.intake.setManualPower(-1);
-                    follower.setTarget(new Pose(GATE1.getX(),GATE1.getY()+2*(cycles-1),GATE1.getHeading()));
+                    follower.overallmulti = 0.6;
+
+                    follower.setTarget(new Pose(GATE1.getX(), GATE1.getY() - (cycles - 1) * 2, GATE1.getHeading()));
                     setCases(CASES.ARRIVETOGATE);
                 }
                 break;
             case ARRIVETOGATE:
-                if (follower.reachedTargetOrStopped(6)) {
+                if (follower.reachedTargetOrStopped(12)) {
                     follower.overallmulti = 1;
                     follower.setTarget(GATE2);
                     setCases(CASES.COLLECTGATE);
@@ -169,27 +176,66 @@ public class closered extends OpMode {
                     follower.setTarget(LAUNCH);
                     setCases(CASES.LAUNCHSEC);
                     cycles++;
-                    }
+                }
                 break;
             case GOTOFIRST:
-                follower.setTarget(LINIA1);
+
                 modules.intake.setManualPower(-1);
-                if (follower.reachedTarget(6) && follower.reachedHeading(Math.toRadians(10)))
-                    setCases(CASES.COLLECTFIRST);
+                setCases(CASES.COLLECTFIRST);
                 break;
             case COLLECTFIRST:
+
                 follower.setTarget(LINIA1C);
-                follower.overallmulti = 1;
-                if (follower.reachedTarget(6)) {
-                    setCases(CASES.LAUNCHSEC);
+                follower.overallmulti = 0.4;
+
+                if (follower.reachedTarget(12)) {
                     follower.overallmulti = 1;
                     follower.setTarget(LAUNCH);
-                    modules.intake.setManualPower(1);
+
                     setCases(CASES.LAUNCHFIRST);
                 }
                 break;
             case LAUNCHFIRST:
+                follower.overallmulti = 1;
+                if (localization.getX() < 110)
+                    modules.intake.setManualPower(1);
                 if (follower.reachedTarget(12)) {
+
+                    if (shooting == 1)
+                        Launch();
+                } else shootingtimer.reset();
+                if (shooting == 0) {
+                    shootingcase = 0;
+                    shooting = 1;
+//                    setCases(CASES.PARK);
+                    setCases(CASES.GOTOTHIRD);
+                }
+                break;
+            case GOTOTHIRD:
+                follower.setTarget(LINIA3);
+                modules.intake.setManualPower(-1);
+                if (follower.reachedTarget(6) && follower.reachedHeading(Math.toRadians(10))) {
+
+                    setCases(CASES.COLLECTTHIRD);
+                }
+                break;
+            case COLLECTTHIRD:
+                modules.intake.setManualPower(-1);
+                follower.setTarget(LINIA3C);
+                follower.overallmulti = 0.6;
+                if (follower.reachedTarget(6)) {
+
+                    follower.overallmulti = 1;
+                    follower.setTarget(LAUNCH);
+
+                    setCases(CASES.LAUNCHTHIRD);
+                }
+                break;
+            case LAUNCHTHIRD:
+                if (localization.getX() < 120)
+                    modules.intake.setManualPower(1);
+                if (follower.reachedTarget(12)) {
+
                     if (shooting == 1)
                         Launch();
                 } else shootingtimer.reset();
@@ -201,7 +247,7 @@ public class closered extends OpMode {
                 break;
             case PARK:
                 follower.setTarget(PARK);
-                    break;
+                break;
 
         }
 
@@ -230,7 +276,7 @@ public class closered extends OpMode {
         COLLECTSECOND,
         LAUNCHSEC,
         TOGATE,
-        ARRIVETOGATE, COLLECTGATE, GOTOFIRST, COLLECTFIRST, LAUNCHFIRST,PARK;
+        ARRIVETOGATE, COLLECTGATE, GOTOFIRST, COLLECTFIRST, LAUNCHFIRST, PARK, GOTOTHIRD, COLLECTTHIRD, LAUNCHTHIRD;
     }
 
     public void Launch() {
@@ -243,35 +289,52 @@ public class closered extends OpMode {
 //                    current.reset();
 //                }
 //            } else {
-        current.reset();
-        switch (shootingcase) {
-            case 0:
-                shootingcase++;
-                break;
-            case 1:
+        if (modules.spinner.spinner.motor.motor.getCurrent(CurrentUnit.AMPS) > 7 && isstuck != 1) {
+            if (current.milliseconds() > 150) {
+                stuckpos=modules.spinner.getRealCurrentPosition();
+                isstucktimer.reset();
+                isstuck = 1;
+            }
+        } else
+            current.reset();
+        if (isstuck == 1) {
 
-                if (shootingtimer.milliseconds() > 230) {
-                    modules.spinner.setAuto(220);
+            modules.spinner.setAuto(stuckpos - 80);
+            if (isstucktimer.milliseconds() > 450)
+                isstuck = 0;
+
+        }
+        else {
+
+            switch (shootingcase) {
+                case 0:
                     shootingcase++;
-                    shootingtimer.reset();
-                }
-                break;
-            case 2:
+                    break;
+                case 1:
 
-                if (shootingtimer.milliseconds() > 230) {
-                    modules.spinner.setAuto(380);
-                    if (modules.spinner.getRealCurrentPosition() > 370)
+                    if (shootingtimer.milliseconds() > 230) {
+                        modules.spinner.setAuto(220);
                         shootingcase++;
+                        shootingtimer.reset();
+                    }
+                    break;
+                case 2:
 
-                }
-                break;
-            case 3:
-                modules.spinner.setRunMode(Spinner.EXTRUNMODE.PID);
-                modules.spinner.setAuto(0);
-                shooting = 0;
-                shootingcase = 0;
+                    if (shootingtimer.milliseconds() > 230) {
+                        modules.spinner.setAuto(380);
+                        if (modules.spinner.getRealCurrentPosition() > 370)
+                            shootingcase++;
 
-                break;
+                    }
+                    break;
+                case 3:
+                    modules.spinner.setRunMode(Spinner.EXTRUNMODE.PID);
+                    modules.spinner.setAuto(0);
+                    shooting = 0;
+                    shootingcase = 0;
+
+                    break;
+            }
         }
     }
 //        } else {

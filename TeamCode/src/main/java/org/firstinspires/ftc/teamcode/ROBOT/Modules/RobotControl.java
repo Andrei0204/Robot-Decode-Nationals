@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.ROBOT.Spinner;
@@ -27,17 +28,20 @@ public class RobotControl implements IRobotModule {
     public ElapsedTime shootingtimer;
     ElapsedTime reversetimer;
     ElapsedTime sensortimer;
+    ElapsedTime isstucktimer;
+    ElapsedTime current;
     GoBildaPinpointDriver odo; // Declare OpMode member for the Odometry Compu
     public double flywheelSpeed = 0;
     public static Vector robotToGoalVector = new Vector();
     public double counter = 0;
     public static double shooting = 0;
-
+    double stuckpos =0;
     public static double compensation = 1;
+    public  double isstuck = 0;
     public double rec = 0.25;
     public static double recf = 0.25;
     public static double recc = 0.1;
-    public static double counterf = 250;
+    public static double counterf = 270;
     public static double counterc = 140;
     public static double magnitude = 110;
     public int shootingcase = 0;
@@ -63,14 +67,16 @@ public class RobotControl implements IRobotModule {
         reversetimer = new ElapsedTime();
         sensortimer = new ElapsedTime();
         opentime = new ElapsedTime();
+        current = new ElapsedTime();
+        isstucktimer = new ElapsedTime();
         this.gamepad2 = gamepad2;
         shootingtimer = new ElapsedTime();
         this.modules = modules;
         this.odo = odo;
     }
-    public void setSwm(int swm)
-    {
-        this.swmon=swm;
+
+    public void setSwm(int swm) {
+        this.swmon = swm;
     }
 
     private void UpIn() {
@@ -146,37 +152,53 @@ public class RobotControl implements IRobotModule {
         }
         if (shooting == 1) {
 
-            switch (shootingcase) {
-                case 0:
+            if (modules.spinner.spinner.motor.motor.getCurrent(CurrentUnit.AMPS) > 7 && isstuck != 1) {
+                if (current.milliseconds() > 250) {
+                    stuckpos= modules.spinner.getRealCurrentPosition();
+                    isstucktimer.reset();
+                    isstuck = 1;
+                }
+            } else
+                current.reset();
+            if (isstuck == 1) {
 
-                    shootingcase++;
-                    break;
+                modules.spinner.setAuto(stuckpos - 80);
+                if (isstucktimer.milliseconds() > 400)
+                    isstuck = 0;
 
-                case 1:
+            } else {
 
-                    if (shootingtimer.milliseconds() > counter) {
-                        modules.spinner.setAuto(220);
+                switch (shootingcase) {
+                    case 0:
+
                         shootingcase++;
-                        shootingtimer.reset();
-                    }
-                    break;
-                case 2:
+                        break;
 
-                    if (shootingtimer.milliseconds() > counter) {
-                        modules.spinner.setAuto(380);
-                        if (modules.spinner.getRealCurrentPosition() > 370)
+                    case 1:
+
+                        if (shootingtimer.milliseconds() > counter) {
+                            modules.spinner.setAuto(220);
                             shootingcase++;
+                            shootingtimer.reset();
+                        }
+                        break;
+                    case 2:
 
-                    }
-                    break;
-                case 3:
-                    modules.spinner.setRunMode(Spinner.EXTRUNMODE.PID);
-                    modules.spinner.setState(Spinner.State.START);
-                    shooting = 0;
-                    shootingcase = 0;
-                    break;
+                        if (shootingtimer.milliseconds() > counter) {
+                            modules.spinner.setAuto(380);
+                            if (modules.spinner.getRealCurrentPosition() > 370)
+                                shootingcase++;
+
+                        }
+                        break;
+                    case 3:
+                        modules.spinner.setRunMode(Spinner.EXTRUNMODE.PID);
+                        modules.spinner.setState(Spinner.State.START);
+                        shooting = 0;
+                        shootingcase = 0;
+                        break;
+                }
             }
-
         }
 //        if(gamepad2.leftBumperWasPressed()) {
 //            if (spin <= -2)
@@ -317,37 +339,37 @@ public class RobotControl implements IRobotModule {
     }
 
     public void Launch() {
-            switch (shootingcase) {
-                case 0:
+        switch (shootingcase) {
+            case 0:
 
+                shootingcase++;
+                break;
+
+            case 1:
+
+                if (shootingtimer.milliseconds() > counter) {
+                    modules.spinner.setAuto(220);
                     shootingcase++;
-                    break;
+                    shootingtimer.reset();
+                }
+                break;
+            case 2:
 
-                case 1:
-
-                    if (shootingtimer.milliseconds() > counter) {
-                        modules.spinner.setAuto(220);
+                if (shootingtimer.milliseconds() > counter) {
+                    modules.spinner.setAuto(380);
+                    if (modules.spinner.getRealCurrentPosition() > 370)
                         shootingcase++;
-                        shootingtimer.reset();
-                    }
-                    break;
-                case 2:
 
-                    if (shootingtimer.milliseconds() > counter) {
-                        modules.spinner.setAuto(380);
-                        if (modules.spinner.getRealCurrentPosition() > 370)
-                            shootingcase++;
+                }
+                break;
+            case 3:
+                modules.spinner.setRunMode(Spinner.EXTRUNMODE.PID);
+                modules.spinner.setState(Spinner.State.START);
+                shooting = 0;
+                shootingcase = 0;
 
-                    }
-                    break;
-                case 3:
-                    modules.spinner.setRunMode(Spinner.EXTRUNMODE.PID);
-                    modules.spinner.setState(Spinner.State.START);
-                    shooting = 0;
-                    shootingcase = 0;
-
-                    break;
-            }
+                break;
+        }
 
     }
 }

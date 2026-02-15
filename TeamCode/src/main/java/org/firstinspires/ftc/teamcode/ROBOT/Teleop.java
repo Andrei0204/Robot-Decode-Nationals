@@ -40,7 +40,7 @@ public class Teleop extends OpMode {
     DcMotor FL;
     DcMotor FR;
     ElapsedTime timer;
-    public static double x=-6,y=-148;
+    public static double x = -6, y = -148;
     RobotControl control;
     RoboModules modules;
     public int spin = 0;
@@ -52,15 +52,15 @@ public class Teleop extends OpMode {
 
     @Override
     public void init() {
-        odo = hardwareMap.get(GoBildaPinpointDriver.class,"pp");
+        odo = hardwareMap.get(GoBildaPinpointDriver.class, "pp");
         odo.setOffsets(x, y, DistanceUnit.MM); //these are tuned for 3110-0002-0001 Product Insight #1
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.REVERSED);
-        odo.resetPosAndIMU();
+
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         modules = new RoboModules(hardwareMap);
-        control = new RobotControl(gamepad1, gamepad2, modules,odo);
-        timer= new ElapsedTime();
+        control = new RobotControl(gamepad1, gamepad2, modules, odo);
+        timer = new ElapsedTime();
         BL = hardwareMap.get(DcMotor.class, "BL");
         BR = hardwareMap.get(DcMotor.class, "BR");
         FR = hardwareMap.get(DcMotor.class, "FR");
@@ -69,7 +69,6 @@ public class Teleop extends OpMode {
         BR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         BL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         FL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
 
 
         BR.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -84,34 +83,41 @@ public class Teleop extends OpMode {
 //        c2= hardwareMap.get(NormalizedColorSensor.class,"C2");
 //        c3= hardwareMap.get(NormalizedColorSensor.class,"C3");
     }
-@Override public void start(){
-    odo.setPosition(new Pose2D(DistanceUnit.INCH,7.7,7.5,AngleUnit.DEGREES,90));
-    modules.lTur.turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-    modules.lTur.turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-    modules.sensorstart();
-}
+
+    @Override
+    public void init_loop() {
+        if (gamepad2.a) {
+            odo.resetPosAndIMU();
+            odo.setPosition(new Pose2D(DistanceUnit.INCH, 7.7, 7.5, AngleUnit.DEGREES, 90));
+        }
+    }
+
+    @Override
+    public void start() {
+
+        modules.lTur.turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        modules.lTur.turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        modules.sensorstart();
+    }
+
     @Override
     public void loop() {
-        if(gamepad1.share)
-        {
-            odo.setPosition(new Pose2D(DistanceUnit.INCH,7.7,7.5, AngleUnit.DEGREES,90));
+        if (gamepad1.share) {
+            odo.setPosition(new Pose2D(DistanceUnit.INCH, 7.7, 7.5, AngleUnit.DEGREES, 90));
         }
         odo.update();
-        if(gamepad1.left_stick_button)
-        {
-         mult=multv;
-        }
-        else
-            mult=1;
-        double x = -gamepad1.left_stick_x*mult;
-        double y = gamepad1.left_stick_y*mult;
-        double rx = -gamepad1.right_stick_x*mult;
+        if (gamepad1.left_stick_button) {
+            mult = multv;
+        } else
+            mult = 1;
+        double x = -gamepad1.left_stick_x * mult;
+        double y = gamepad1.left_stick_y * mult;
+        double rx = -gamepad1.right_stick_x * mult;
         double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
         FL.setPower((y + x + rx) / denominator);
         FR.setPower((y - x - rx) / denominator);
         BL.setPower((y - x + rx) / denominator);
         BR.setPower((y + x - rx) / denominator);
-
 
 
         modules.update();
@@ -120,8 +126,6 @@ public class Teleop extends OpMode {
         Pose2D pos = odo.getPosition();
         String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
         telemetry.addData("Position", data);
-
-
 
 
         telemetry.addData("spinner", modules.launcher.Motorvel());

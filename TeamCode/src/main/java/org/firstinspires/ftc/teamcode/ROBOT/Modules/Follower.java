@@ -8,6 +8,7 @@ import com.arcrobotics.ftclib.controller.PIDController;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -25,11 +26,14 @@ public class Follower {
     Pose target = new Pose(0,0);
     public Pose localization =new Pose(0,0);
     CoolMotor frontLeft, frontRight, backLeft, backRight;
+    ElapsedTime pathtimer;
+    double istimed=0;
+    double time=0;
     boolean frontLeftMotorReversed , frontRightMotorReversed=true, backLeftMotorReversed , backRightMotorReversed=true;
     PIDController tpid = new PIDController(0,0,0), hpid = new PIDController(0,0,0);
-    public static double kp = 0.08, ki = 0.001, kd = 0.0265
+    public static double kp = 0.09 , ki = 0.001, kd = 0.03
             ,
-            kph = 0.6, kih = 0, kdh = 0.;
+            kph = 0.6, kih = 0, kdh = 0.11;
     Vector power = new Vector(0,0);
     public static double velocityThreshold =3.7  ;
     public static double lateralmultiplier = 1.2 ;
@@ -39,6 +43,7 @@ public class Follower {
 
     public Follower(HardwareMap hardwareMap,GoBildaPinpointDriver odo) {
         lateralmultiplier=1;
+        pathtimer= new ElapsedTime();
         this.odo=odo;
         frontLeft = new CoolMotor(hardwareMap.get(DcMotorEx.class, "FL"), CoolMotor.RunMode.RUN, true);
         frontRight = new CoolMotor(hardwareMap.get(DcMotorEx.class, "FR"), CoolMotor.RunMode.RUN, false);
@@ -92,8 +97,28 @@ public class Follower {
     }
     public void setTarget(Pose target) {
         this.target = target;
-    }
+        
 
+    }
+    public void setTarget(Pose target,double timer) {
+        if(this.target!=target)
+            pathtimer.reset();
+        this.target = target;
+        istimed=1;
+        time=timer;
+
+
+    }
+    public int timeout(){
+        if(istimed==1)
+            if(pathtimer.milliseconds()>time)
+                return 1;
+        return 0;
+    }
+    public void setTarget(com.pedropathing.geometry.Pose target){
+        this.target=new Pose ( target.getX(),target.getY(),target.getHeading());
+
+    }
     public Pose getTarget() {
         return target;
     }

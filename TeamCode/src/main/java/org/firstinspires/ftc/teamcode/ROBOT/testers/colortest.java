@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.ROBOT;
+package org.firstinspires.ftc.teamcode.ROBOT.testers;
 
 
 import com.acmerobotics.dashboard.config.Config;
@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Color;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Distance;
-import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.DistanceC;
+import org.firstinspires.ftc.teamcode.ROBOT.Modules.DistanceC;
 
 @Config
 @TeleOp

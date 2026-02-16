@@ -1,8 +1,9 @@
-package org.firstinspires.ftc.teamcode.ROBOT;
+package org.firstinspires.ftc.teamcode.ROBOT.Autos;
 
 
 import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -16,14 +17,16 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.Follower;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Intake;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
+import org.firstinspires.ftc.teamcode.ROBOT.Modules.Spinner;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Pose;
 
+import java.util.List;
 import java.util.Locale;
 
 @Config
 @Configurable
 @Autonomous
-public class closered extends OpMode {
+public class closeRed extends OpMode {
 
     ElapsedTime timer;
     int once = 0;
@@ -52,7 +55,7 @@ public class closered extends OpMode {
     Pose LINIA2 = new Pose(101.0, 54.3, Math.toRadians(0));
     Pose LINIA2C = new Pose(139, 54.3, Math.toRadians(0));
     Pose LINIA3 = new Pose(101.0, 30.3, Math.toRadians(0));
-    Pose LINIA3C = new Pose(139, 30.3, Math.toRadians(0));
+    Pose LINIA3C = new Pose(137, 30.3, Math.toRadians(0));
     Pose GATE1 = new Pose(131, 69, Math.toRadians(0));
     Pose GATE2 = new Pose(134, 47, Math.toRadians(30));
     //    Pose GATE1 = new Pose(132, 52.5, Math.toRadians(31));
@@ -63,6 +66,12 @@ public class closered extends OpMode {
 
     @Override
     public void init() {
+        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+
         shootingtimer = new ElapsedTime();
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "pp");
         odo.setOffsets(x, y, DistanceUnit.MM); //these are tuned for 3110-0002-0001 Product Insight #1
@@ -77,6 +86,7 @@ public class closered extends OpMode {
         control = new RobotControl(gamepad1, gamepad2, modules, odo);
 
         follower.setTarget(new Pose(0, 0, Math.toRadians(90)));
+        control.red=1;
     }
 
     @Override
@@ -96,6 +106,7 @@ public class closered extends OpMode {
         modules.intake.setManualPower(0);
         modules.spinner.setAuto(0);
         control.setSwm(1);
+        control.swmtur=1;
 //        modules.sensorstart();
     }
 
@@ -251,7 +262,7 @@ public class closered extends OpMode {
 
         }
 
-        if (localization.getY() < 125)
+//        if (localization.getY() < 125)
             control.UpLaunch();
         follower.update();
         odo.update();
@@ -290,7 +301,7 @@ public class closered extends OpMode {
 //                }
 //            } else {
         if (modules.spinner.spinner.motor.motor.getCurrent(CurrentUnit.AMPS) > 7 && isstuck != 1) {
-            if (current.milliseconds() > 150) {
+            if (current.milliseconds() > 300) {
                 stuckpos=modules.spinner.getRealCurrentPosition();
                 isstucktimer.reset();
                 isstuck = 1;
@@ -300,7 +311,7 @@ public class closered extends OpMode {
         if (isstuck == 1) {
 
             modules.spinner.setAuto(stuckpos - 80);
-            if (isstucktimer.milliseconds() > 450)
+            if (isstucktimer.milliseconds() > 250)
                 isstuck = 0;
 
         }
@@ -308,6 +319,8 @@ public class closered extends OpMode {
 
             switch (shootingcase) {
                 case 0:
+                    modules.spinner.setAuto(120);
+                    shootingtimer.reset();
                     shootingcase++;
                     break;
                 case 1:

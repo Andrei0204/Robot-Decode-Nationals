@@ -2,11 +2,9 @@ package org.firstinspires.ftc.teamcode.ROBOT.Modules;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.gamepad.PanelsGamepad;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.MathFunctions;
 import com.pedropathing.math.Vector;
-import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -14,7 +12,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.GoBildaPinpointDriver;
-import org.firstinspires.ftc.teamcode.ROBOT.Spinner;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IRobotModule;
 
 @Configurable
@@ -37,16 +34,19 @@ public class RobotControl implements IRobotModule {
     public static double shooting = 0;
     double stuckpos =0;
     public static double compensation = 1;
+    public static double red = 1;
     public  double isstuck = 0;
     public double rec = 0.25;
     public static double recf = 0.25;
     public static double recc = 0.1;
     public static double counterf = 270;
-    public static double counterc = 140;
+    public static double counterc = 180;
     public static double magnitude = 110;
     public int shootingcase = 0;
 
     public int swm = 1;
+    public int auto = 0;
+    public int swmtur = 1;
     public int swmon = 1;
     public static int minus = 1;
 //
@@ -73,6 +73,8 @@ public class RobotControl implements IRobotModule {
         shootingtimer = new ElapsedTime();
         this.modules = modules;
         this.odo = odo;
+        swmtur=1;
+        auto=0;
     }
 
     public void setSwm(int swm) {
@@ -93,16 +95,18 @@ public class RobotControl implements IRobotModule {
 
         if (sensortimer.milliseconds() > 350) {
             sensortimer.reset();
-            if ((modules.distance.getDetection() < 90 || modules.distancec.getDetection() < 12)
-                    && (modules.distance2.getDetection() < 90 || modules.distance2c.getDetection() < 12)
-                    && (modules.distance3.getDetection() < 90 || modules.distance3c.getDetection() < 12)
+            if ((modules.distance.getDetection() < 120 || modules.distancec.getDetection() < 20)
+                    && (modules.distance2.getDetection() < 120 || modules.distance2c.getDetection() < 20)
+                    && (modules.distance3.getDetection() < 120 || modules.distance3c.getDetection() < 20)
                     && Math.abs(modules.spinner.getRealCurrentPosition()) - 10 < 0 &&
                     !gamepad1.right_bumper) {
+
                 reversetimer.reset();
                 modules.intake.setManualPower(1);
 
             }
-        }
+        }if(modules.intake.getManualPower()==1)
+            modules.bec.setPosition(0.5);
         if (sensortimer.milliseconds() > 300 && modules.intake.getManualPower() == 1) {
             modules.intake.setManualPower(0);
             reversetimer.reset();
@@ -264,7 +268,21 @@ public class RobotControl implements IRobotModule {
 
     public void UpLaunch() {
 
-        robotToGoalVector = new Vector(new Pose(ShooterConstants.GOAL_POS_RED.getX() - odo.getPosX(DistanceUnit.INCH), ShooterConstants.GOAL_POS_RED.getY() - odo.getPosY(DistanceUnit.INCH)));
+
+        if(red==1) {
+            if(auto==0)
+             robotToGoalVector = new Vector(new Pose(ShooterConstants.GOAL_POS_RED.getX() - odo.getPosX(DistanceUnit.INCH), ShooterConstants.GOAL_POS_RED.getY() - odo.getPosY(DistanceUnit.INCH)));
+            else
+                robotToGoalVector = new Vector(new Pose(ShooterConstants.GOAL_POS_RED_AUTO.getX() - odo.getPosX(DistanceUnit.INCH), ShooterConstants.GOAL_POS_RED_AUTO.getY() - odo.getPosY(DistanceUnit.INCH)));
+
+        }else {
+            if(auto==0)
+                robotToGoalVector = new Vector(new Pose(ShooterConstants.GOAL_POS_BLUE.getX() - odo.getPosX(DistanceUnit.INCH), ShooterConstants.GOAL_POS_BLUE.getY() - odo.getPosY(DistanceUnit.INCH)));
+            else
+                robotToGoalVector = new Vector(new Pose(ShooterConstants.GOAL_POS_BLUE_AUTO.getX() - odo.getPosX(DistanceUnit.INCH), ShooterConstants.GOAL_POS_BLUE_AUTO.getY() - odo.getPosY(DistanceUnit.INCH)));
+
+
+        }
         double g = 32.174 * 12;
         double x = robotToGoalVector.getMagnitude() - ShooterConstants.PASS_THROUGH_POINT_RADIUS;
         double y = ShooterConstants.SCORE_HEIGHT_CLOSE;
@@ -300,7 +318,8 @@ public class RobotControl implements IRobotModule {
         if (swm == 1) {
             hoodAngle = MathFunctions.clamp(Math.atan(vz / nvr), Math.toRadians(30), Math.toRadians(55));
             flywheelSpeed = Math.sqrt(g * ndr * ndr / (2 * Math.pow(Math.cos(hoodAngle), 2) * (ndr * Math.tan(hoodAngle) - y)));
-            turretVelComp = Math.atan(perpendicularComponent / ivr);
+            if(swmtur==1)
+                turretVelComp = Math.atan(perpendicularComponent / ivr);
 
         }
 
@@ -333,6 +352,7 @@ public class RobotControl implements IRobotModule {
 
     @Override
     public void update() {
+        modules.bec.setPosition(1);
         UpIn();
         UpSpin();
         UpLaunch();

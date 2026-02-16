@@ -1,10 +1,8 @@
 package org.firstinspires.ftc.teamcode.ROBOT.Modules;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.teamcode.ROBOT.LTur;
-import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.DistanceC;
-import org.firstinspires.ftc.teamcode.ROBOT.Spinner;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IRobotModule;
 
 public class RoboModules implements IRobotModule {
@@ -24,6 +22,7 @@ public class RoboModules implements IRobotModule {
     DistanceC distancec= new DistanceC();
     DistanceC distance2c= new DistanceC();
     DistanceC distance3c= new DistanceC();
+    public Servo bec;
 
 
 
@@ -32,6 +31,7 @@ public class RoboModules implements IRobotModule {
     public HardwareMap hardwareMap;
     public RoboModules(HardwareMap hardwareMap)
     {
+        bec= hardwareMap.get(Servo.class,"BEC");
         this.hardwareMap=hardwareMap;
         lTur= new LTur(hardwareMap, LTur.State.START);
         spinner= new Spinner(hardwareMap, Spinner.State.START);
@@ -45,6 +45,7 @@ public class RoboModules implements IRobotModule {
     }
 
     public void  sensorstart(){
+
         distancec.sinit(hardwareMap,"C1");
         distance2c.sinit(hardwareMap,"C2");
         distance3c.sinit(hardwareMap,"C3");

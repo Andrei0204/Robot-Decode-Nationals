@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.ROBOT;
+package org.firstinspires.ftc.teamcode.ROBOT.Teleop;
 
 
 import com.acmerobotics.dashboard.FtcDashboard;
@@ -6,15 +6,11 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.field.Style;
-import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
-import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -25,13 +21,14 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 @Config
 @Configurable
 @TeleOp
-public class Teleop extends OpMode {
+public class TeleopR extends OpMode {
+
     private static final Style robotLook = new Style(
             "", "#3F51B5", 0.75
     );
@@ -52,6 +49,12 @@ public class Teleop extends OpMode {
 
     @Override
     public void init() {
+        List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
+
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        }
+
         odo = hardwareMap.get(GoBildaPinpointDriver.class, "pp");
         odo.setOffsets(x, y, DistanceUnit.MM); //these are tuned for 3110-0002-0001 Product Insight #1
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
@@ -78,7 +81,8 @@ public class Teleop extends OpMode {
         BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
+        control.red=1;
+        modules.sensorstart();
 //        c1= hardwareMap.get(NormalizedColorSensor.class,"C1");
 //        c2= hardwareMap.get(NormalizedColorSensor.class,"C2");
 //        c3= hardwareMap.get(NormalizedColorSensor.class,"C3");
@@ -90,6 +94,7 @@ public class Teleop extends OpMode {
             odo.resetPosAndIMU();
             odo.setPosition(new Pose2D(DistanceUnit.INCH, 7.7, 7.5, AngleUnit.DEGREES, 90));
         }
+
     }
 
     @Override
@@ -97,7 +102,7 @@ public class Teleop extends OpMode {
 
         modules.lTur.turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         modules.lTur.turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        modules.sensorstart();
+
     }
 
     @Override

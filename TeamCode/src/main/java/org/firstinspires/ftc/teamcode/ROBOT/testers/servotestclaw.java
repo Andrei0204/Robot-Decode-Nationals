@@ -1,16 +1,10 @@
-package org.firstinspires.ftc.teamcode.ROBOT;
+package org.firstinspires.ftc.teamcode.ROBOT.testers;
 
 
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.hardware.ServoEx;
-import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServoImpl;
-import com.qualcomm.robotcore.hardware.CRServoImplEx;
-import com.qualcomm.robotcore.hardware.PwmControl;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 @Config
@@ -24,7 +18,7 @@ public class  servotestclaw extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        test =hardwareMap.get(ServoImplEx.class,"PIVOT");
+        test =hardwareMap.get(ServoImplEx.class,"BEC");
 //        test1 =hardwareMap.get(Servo.class,"tur2");
 //        test.setPwmRange(new PwmControl.PwmRange(500,2500));
 
@@ -32,16 +26,7 @@ public class  servotestclaw extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) { // singurul while
-            double max =1;
-            double min=0.1;
-            double degmin=25;
-            double degmax=58;
-            double grd =max+(pos-degmin)/(degmax-degmin)*(min-max);
-            if(grd<0.08)
-                grd=0.08;
-            if(grd>1)
-                grd=1;
-            test.setPosition(grd);
+            test.setPosition(pos);
 //            test1.setPosition(pos2);
             telemetry.update();
         }

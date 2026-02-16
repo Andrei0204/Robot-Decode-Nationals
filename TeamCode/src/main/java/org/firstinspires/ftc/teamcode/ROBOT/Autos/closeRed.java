@@ -49,7 +49,12 @@ public class closeRed extends OpMode {
     double auto = 0;
 
     Pose START = new Pose(110.5, 131.6, Math.toRadians(0));
-    Pose LAUNCH = new Pose(92, 81.1, Math.toRadians(0));
+    Pose LAUNCH = new Pose(91
+
+
+
+
+            , 81.1, Math.toRadians(0));
     Pose LINIA1 = new Pose(101.0, 81.5, Math.toRadians(0));
     Pose LINIA1C = new Pose(133, 81.5, Math.toRadians(0));
     Pose LINIA2 = new Pose(101.0, 54.3, Math.toRadians(0));
@@ -86,7 +91,7 @@ public class closeRed extends OpMode {
         control = new RobotControl(gamepad1, gamepad2, modules, odo);
 
         follower.setTarget(new Pose(0, 0, Math.toRadians(90)));
-        control.red=1;
+        control.red = 1;
     }
 
     @Override
@@ -106,7 +111,8 @@ public class closeRed extends OpMode {
         modules.intake.setManualPower(0);
         modules.spinner.setAuto(0);
         control.setSwm(1);
-        control.swmtur=1;
+        control.swmtur = 1;
+        control.auto=1;
 //        modules.sensorstart();
     }
 
@@ -117,12 +123,12 @@ public class closeRed extends OpMode {
 
         switch (cases) {
             case GOTOPREANDLAUNCH:
-                follower.setTarget(LAUNCH);
+                follower.setTarget(LAUNCH, 3000);
                 if (follower.reachedTarget(12)) {
                     if (shooting == 1)
                         Launch();
                 } else shootingtimer.reset();
-                if (follower.reachedTarget(6) && shooting == 0) {
+                if ((follower.reachedTarget(6) && shooting == 0) || (follower.timeout())) {
                     shooting = 1;
                     shootingcase = 0;
                     setCases(CASES.GOTOSECOND);
@@ -131,24 +137,24 @@ public class closeRed extends OpMode {
 
 
             case GOTOSECOND:
-                follower.setTarget(LINIA2);
+                follower.setTarget(LINIA2,1600);
                 modules.intake.setManualPower(-1);
-                if (follower.reachedTarget(6) && follower.reachedHeading(Math.toRadians(10)))
+                if ((follower.reachedTarget(6) && follower.reachedHeading(Math.toRadians(10)) ||follower.timeout()))
                     setCases(CASES.COLLECTSECOND);
                 break;
             case COLLECTSECOND:
-                follower.setTarget(LINIA2C);
+                follower.setTarget(LINIA2C,2000);
                 follower.overallmulti = 0.8;
-                if (follower.reachedTarget(8)) {
+                if (follower.reachedTarget(8) ||follower.timeout()) {
                     setCases(CASES.LAUNCHSEC);
                     follower.overallmulti = 1;
-                    follower.setTarget(LAUNCH);
+                    follower.setTarget(LAUNCH,2000);
 
                     setCases(CASES.LAUNCHSEC);
                 }
                 break;
             case LAUNCHSEC:
-                if (follower.reachedTarget(12)) {
+                if (follower.reachedTarget(12)||follower.timeout()) {
                     modules.intake.setManualPower(1);
                     if (shooting == 1)
                         Launch();
@@ -164,27 +170,38 @@ public class closeRed extends OpMode {
                 break;
             case TOGATE:
 //                control.setSwm(0);
-                follower.setTarget(GATEOTW);
+                follower.setTarget(GATEOTW,2000);
                 modules.intake.setManualPower(-1);
-                if (follower.reachedTarget(15)) {
+                if (follower.reachedTarget(15)||follower.timeout()) {
                     follower.overallmulti = 0.6;
 
-                    follower.setTarget(new Pose(GATE1.getX(), GATE1.getY() - (cycles - 1) * 2, GATE1.getHeading()));
+                    follower.setTarget(new Pose(GATE1.getX(), GATE1.getY() - (cycles - 1) * 2, GATE1.getHeading()),1500);
+                    timer.reset();
                     setCases(CASES.ARRIVETOGATE);
                 }
                 break;
             case ARRIVETOGATE:
-                if (follower.reachedTargetOrStopped(12)) {
-                    follower.overallmulti = 1;
-                    follower.setTarget(GATE2);
-                    setCases(CASES.COLLECTGATE);
-                    timer.reset();
+                if (follower.reachedTargetOrStopped(12)||follower.timeout()) {
+                    if(timer.milliseconds()>350 && cycles==2){
+                        follower.overallmulti = 1;
+                        follower.setTarget(GATE2,1000);
+                        setCases(CASES.COLLECTGATE);
+                        timer.reset();
+                    }
+                    else if(cycles!=2)
+                    {
+                        follower.overallmulti = 1;
+                        follower.setTarget(GATE2,1000);
+                        setCases(CASES.COLLECTGATE);
+                        timer.reset();
+                    }
                 }
+                else timer.reset();
                 break;
             case COLLECTGATE:
                 if (timer.milliseconds() > 2000) {
                     modules.intake.setManualPower(1);
-                    follower.setTarget(LAUNCH);
+                    follower.setTarget(LAUNCH,2400);
                     setCases(CASES.LAUNCHSEC);
                     cycles++;
                 }
@@ -196,12 +213,12 @@ public class closeRed extends OpMode {
                 break;
             case COLLECTFIRST:
 
-                follower.setTarget(LINIA1C);
+                follower.setTarget(LINIA1C,2000);
                 follower.overallmulti = 0.4;
 
-                if (follower.reachedTarget(12)) {
+                if (follower.reachedTarget(12)||follower.timeout()) {
                     follower.overallmulti = 1;
-                    follower.setTarget(LAUNCH);
+                    follower.setTarget(LAUNCH,2000);
 
                     setCases(CASES.LAUNCHFIRST);
                 }
@@ -210,7 +227,7 @@ public class closeRed extends OpMode {
                 follower.overallmulti = 1;
                 if (localization.getX() < 110)
                     modules.intake.setManualPower(1);
-                if (follower.reachedTarget(12)) {
+                if (follower.reachedTarget(12)||follower.timeout()) {
 
                     if (shooting == 1)
                         Launch();
@@ -223,21 +240,21 @@ public class closeRed extends OpMode {
                 }
                 break;
             case GOTOTHIRD:
-                follower.setTarget(LINIA3);
+                follower.setTarget(LINIA3,3000);
                 modules.intake.setManualPower(-1);
-                if (follower.reachedTarget(6) && follower.reachedHeading(Math.toRadians(10))) {
+                if ((follower.reachedTarget(6) && follower.reachedHeading(Math.toRadians(10)))||follower.timeout()) {
 
                     setCases(CASES.COLLECTTHIRD);
                 }
                 break;
             case COLLECTTHIRD:
                 modules.intake.setManualPower(-1);
-                follower.setTarget(LINIA3C);
+                follower.setTarget(LINIA3C,2000);
                 follower.overallmulti = 0.6;
-                if (follower.reachedTarget(6)) {
+                if (follower.reachedTarget(6)||follower.timeout()) {
 
                     follower.overallmulti = 1;
-                    follower.setTarget(LAUNCH);
+                    follower.setTarget(LAUNCH,3500);
 
                     setCases(CASES.LAUNCHTHIRD);
                 }
@@ -245,7 +262,7 @@ public class closeRed extends OpMode {
             case LAUNCHTHIRD:
                 if (localization.getX() < 120)
                     modules.intake.setManualPower(1);
-                if (follower.reachedTarget(12)) {
+                if (follower.reachedTarget(12)|| follower.timeout()) {
 
                     if (shooting == 1)
                         Launch();
@@ -263,7 +280,7 @@ public class closeRed extends OpMode {
         }
 
 //        if (localization.getY() < 125)
-            control.UpLaunch();
+        control.UpLaunch();
         follower.update();
         odo.update();
         modules.update();
@@ -302,7 +319,7 @@ public class closeRed extends OpMode {
 //            } else {
         if (modules.spinner.spinner.motor.motor.getCurrent(CurrentUnit.AMPS) > 7 && isstuck != 1) {
             if (current.milliseconds() > 300) {
-                stuckpos=modules.spinner.getRealCurrentPosition();
+                stuckpos = modules.spinner.getRealCurrentPosition();
                 isstucktimer.reset();
                 isstuck = 1;
             }
@@ -314,8 +331,7 @@ public class closeRed extends OpMode {
             if (isstucktimer.milliseconds() > 250)
                 isstuck = 0;
 
-        }
-        else {
+        } else {
 
             switch (shootingcase) {
                 case 0:

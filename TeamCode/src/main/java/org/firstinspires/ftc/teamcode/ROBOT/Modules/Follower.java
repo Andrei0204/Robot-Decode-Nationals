@@ -20,44 +20,47 @@ import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Pose;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Vector;
 import org.opencv.core.Mat;
 
+import java.util.Objects;
+
 @Config
 public class Follower {
     public GoBildaPinpointDriver odo; // Declare OpMode member for the Odometry Computer
-    Pose target = new Pose(0,0);
-    public Pose localization =new Pose(0,0);
+    Pose target = new Pose(0, 0);
+    public Pose localization = new Pose(0, 0);
     CoolMotor frontLeft, frontRight, backLeft, backRight;
     ElapsedTime pathtimer;
-    double istimed=0;
-    double time=0;
-    boolean frontLeftMotorReversed , frontRightMotorReversed=true, backLeftMotorReversed , backRightMotorReversed=true;
-    PIDController tpid = new PIDController(0,0,0), hpid = new PIDController(0,0,0);
-    public static double kp = 0.09 , ki = 0.001, kd = 0.03
-            ,
+    double istimed = 0;
+    double time = 0;
+    boolean frontLeftMotorReversed, frontRightMotorReversed = true, backLeftMotorReversed, backRightMotorReversed = true;
+    PIDController tpid = new PIDController(0, 0, 0), hpid = new PIDController(0, 0, 0);
+    public static double kp = 0.09, ki = 0.001, kd = 0.03,
             kph = 0.6, kih = 0, kdh = 0.11;
-    Vector power = new Vector(0,0);
-    public static double velocityThreshold =3.7  ;
-    public static double lateralmultiplier = 1.2 ;
-    public static double overallmulti = 1 ;
+    Vector power = new Vector(0, 0);
+    public static double velocityThreshold = 3.7;
+    public static double lateralmultiplier = 1.2;
+    public static double overallmulti = 1;
 
     double headingPower = 0;
 
-    public Follower(HardwareMap hardwareMap,GoBildaPinpointDriver odo) {
-        lateralmultiplier=1;
-        pathtimer= new ElapsedTime();
-        this.odo=odo;
+    public Follower(HardwareMap hardwareMap, GoBildaPinpointDriver odo) {
+        lateralmultiplier = 1;
+        pathtimer = new ElapsedTime();
+        this.odo = odo;
         frontLeft = new CoolMotor(hardwareMap.get(DcMotorEx.class, "FL"), CoolMotor.RunMode.RUN, true);
         frontRight = new CoolMotor(hardwareMap.get(DcMotorEx.class, "FR"), CoolMotor.RunMode.RUN, false);
         backLeft = new CoolMotor(hardwareMap.get(DcMotorEx.class, "BL"), CoolMotor.RunMode.RUN, true);
         backRight = new CoolMotor(hardwareMap.get(DcMotorEx.class, "BR"), CoolMotor.RunMode.RUN, false);
     }
+
     public Follower(HardwareMap hardwareMap) {
-        lateralmultiplier=1;
-        this.odo=null;
+        lateralmultiplier = 1;
+        this.odo = null;
         frontLeft = new CoolMotor(hardwareMap.get(DcMotorEx.class, "FL"), CoolMotor.RunMode.RUN, frontLeftMotorReversed);
         frontRight = new CoolMotor(hardwareMap.get(DcMotorEx.class, "FR"), CoolMotor.RunMode.RUN, frontRightMotorReversed);
         backLeft = new CoolMotor(hardwareMap.get(DcMotorEx.class, "BL"), CoolMotor.RunMode.RUN, backLeftMotorReversed);
         backRight = new CoolMotor(hardwareMap.get(DcMotorEx.class, "BR"), CoolMotor.RunMode.RUN, backRightMotorReversed);
     }
+
     public void setTargetVectorAndSlows(Vector vector, double slowTurn, boolean slowBack, boolean slowForward) {
 
         double yComp = 0, xComp = 0;
@@ -90,35 +93,52 @@ public class Follower {
         while (diff < -Math.PI) diff += Math.PI * 2.0;
         return Math.abs(diff) <= tolerance;
     }
-    public boolean stopped() {        return (Math.abs(odo.getVelX(DistanceUnit.CM) )<= velocityThreshold &&Math.abs( odo.getVelY(DistanceUnit.CM)) <= velocityThreshold  ) && reachedTarget(7);
+
+    public boolean stopped() {
+        return (Math.abs(odo.getVelX(DistanceUnit.CM)) <= velocityThreshold && Math.abs(odo.getVelY(DistanceUnit.CM)) <= velocityThreshold) && reachedTarget(7);
     }
+
     public boolean fullstop() {
-        return (Math.abs(odo.getVelX(DistanceUnit.CM) )<= 0.2 &&Math.abs( odo.getVelY(DistanceUnit.CM)) <= 0.2  ) && reachedTarget(4);
+        return (Math.abs(odo.getVelX(DistanceUnit.CM)) <= 0.2 && Math.abs(odo.getVelY(DistanceUnit.CM)) <= 0.2) && reachedTarget(4);
     }
+
     public void setTarget(Pose target) {
         this.target = target;
-        
+
 
     }
-    public void setTarget(Pose target,double timer) {
-        if(this.target!=target)
+
+    public void setTarget(Pose target, double timer) {
+        if (this.target != target)
             pathtimer.reset();
         this.target = target;
-        istimed=1;
-        time=timer;
+        istimed = 1;
+        time = timer;
 
 
     }
-    public int timeout(){
-        if(istimed==1)
-            if(pathtimer.milliseconds()>time)
-                return 1;
-        return 0;
+
+    public void setTarget(com.pedropathing.geometry.Pose target, double timer) {
+        Pose conversion = new Pose(target.getX(), target.getY(), target.getHeading());
+        if (!Objects.equals(this.target, conversion))
+            pathtimer.reset();
+        this.target = conversion;
+        istimed = 1;
+        time = timer;
     }
-    public void setTarget(com.pedropathing.geometry.Pose target){
-        this.target=new Pose ( target.getX(),target.getY(),target.getHeading());
+
+    public boolean timeout() {
+        if (istimed == 1)
+            if (pathtimer.milliseconds() > time)
+                return true;
+        return false;
+    }
+
+    public void setTarget(com.pedropathing.geometry.Pose target) {
+        this.target = new Pose(target.getX(), target.getY(), target.getHeading());
 
     }
+
     public Pose getTarget() {
         return target;
     }
@@ -128,15 +148,16 @@ public class Follower {
         updateMotors();
 
     }
+
     public void updateteleop() {
         double x = target.getY(),
                 y = target.getX(),
                 rot = target.getHeading();
         double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rot), 1);
-        frontLeft.setPower((y - x + rot)/denominator);
-        frontRight.setPower((y + x - rot)/denominator);
-        backLeft.setPower((y + x + rot)/denominator);
-        backRight.setPower((y-  x - rot)/denominator);
+        frontLeft.setPower((y - x + rot) / denominator);
+        frontRight.setPower((y + x - rot) / denominator);
+        backLeft.setPower((y + x + rot) / denominator);
+        backRight.setPower((y - x - rot) / denominator);
         frontLeft.update();
         frontRight.update();
         backLeft.update();
@@ -169,21 +190,23 @@ public class Follower {
             power.scaleBy(overallmulti);
         }
     }
+
     public void updateMotors() {
-        double x =power.getY(),
-                y =power.getX() ,
+        double x = power.getY(),
+                y = power.getX(),
 //        power.getY(),
                 rot = headingPower;
 
         frontLeft.setPower(y - x - rot);
         frontRight.setPower(y + x + rot);
-        backLeft.setPower(y + x -rot);
+        backLeft.setPower(y + x - rot);
         backRight.setPower(y - x + rot);
         frontLeft.update();
         frontRight.update();
         backLeft.update();
         backRight.update();
     }
+
     public double getDistance(Pose p1, Pose p2) {
         return Math.sqrt((p1.getX() - p2.getX()) * (p1.getX() - p2.getX()) + (p1.getY() - p2.getY()) * (p1.getY() - p2.getY()));
     }
@@ -191,8 +214,8 @@ public class Follower {
     public void setKP(double kp) {
         this.kp = kp;
     }
-    public void setKD(double kd)
-    {
+
+    public void setKD(double kd) {
         this.kd = kd;
     }
 

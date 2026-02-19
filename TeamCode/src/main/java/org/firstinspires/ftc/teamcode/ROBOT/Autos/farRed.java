@@ -49,15 +49,19 @@ public class farRed extends OpMode {
     double auto = 0;
 
     Pose START = new Pose(110.5, 131.6, Math.toRadians(0));
-    Pose LAUNCH = new Pose(84, 17, Math.toRadians(0));
-    Pose PRE1 = new Pose(139, 20, Math.toRadians(-40));
-    Pose PRE2 = new Pose(139, 5, Math.toRadians(0));
-    Pose PRE3 = new Pose(139, 20, Math.toRadians(10));
-    Pose LINIA3 = new Pose(99, 39, Math.toRadians(0));
-    Pose LINIA3C = new Pose(135, 30.3, Math.toRadians(0));
+    Pose LAUNCH = new Pose(80, 17, Math.toRadians(0));
+    public static   Pose PRE1 = new Pose(125, 30, Math.toRadians(-40));
+    public static   Pose PRE2 = new Pose(125, 10, Math.toRadians(-20));
+    public static Pose PRE3 = new Pose(131, 5  , Math.toRadians(20));
+
+//    Pose PRE1 = new Pose(131, 7.5,Math.toRadians(-0));
+//    Pose PRE2 = new Pose(135, 7.5, Math.toRadians(0));
+//    Pose PRE3 = new Pose(135, 7.5, Math.toRadians(0));
+public static    Pose LINIA3 = new Pose(95, 39, Math.toRadians(0));
+    Pose LINIA3C = new Pose(131, 30.3, Math.toRadians(0));
     //    Pose GATE2 = new Pose(133, 52, Math.toRadians(45));
     //    Pose GATE2 = new Pose(135, 46.8, Math.toRadians(55));
-    Pose PARK = new Pose(110, 17, Math.toRadians(0));
+    Pose PARK = new Pose(106, 17, Math.toRadians(0));
 
     @Override
     public void init() {
@@ -113,7 +117,7 @@ public class farRed extends OpMode {
         switch (cases) {
             case GOTOPREANDLAUNCH:
                 follower.setTarget(LAUNCH);
-                if (timer.milliseconds() > 3000) {
+                if (timer.milliseconds() > 1700) {
                     if (follower.reachedTargetAndStopped(6)) {
                         if (shooting == 1) {
                             Launch();
@@ -122,38 +126,41 @@ public class farRed extends OpMode {
                     if (follower.reachedTarget(6) && shooting == 0) {
                         shooting = 1;
                         shootingcase = 0;
-                        follower.setTarget(PRE1);
-                        follower.overallmulti = 0.5;
+                        follower.setTarget(PRE1,2000);
+                        follower.overallmulti = 1;
                         modules.intake.setManualPower(-1);
                         setCases(CASES.GOTOCOLLECT);
                     }
                 } else shootingtimer.reset();
                 break;
             case GOTOCOLLECT:
-                if (follower.reachedTarget(12)) {
+                if (follower.reachedTarget(12) || follower.timeout()) {
+                    follower.overallmulti = 0.9;
                     follower.setTarget(PRE2);
                     timer.reset();
                     setCases(CASES.PRECOLLECT);
                 }
                 break;
             case PRECOLLECT:
-                if(timer.milliseconds()>1000)
+                if(timer.milliseconds()>2000)
                 {
                     follower.setTarget(PRE3);
                     timer.reset();
                     setCases(CASES.COLLECT);
                 }
+                break;
             case COLLECT:
-                if (timer.milliseconds() > 1000) {
+                if (timer.milliseconds() > 1500) {
                     follower.overallmulti = 1;
                     follower.setTarget(LAUNCH);
                     setCases(CASES.GOTOLAUNCH);
                 }
+                break;
             case GOTOLAUNCH:
                 if (localization.getX() < 90) {
                     modules.intake.setManualPower(1);
                 }
-                if (follower.reachedTargetAndStopped(6)) {
+                if (follower.reachedTargetAndStopped(6) && localization.getX()<90) {
                     if (shooting == 1) {
                         Launch();
                     }
@@ -182,8 +189,8 @@ public class farRed extends OpMode {
                 follower.overallmulti = 0.4;
                 if (follower.reachedTarget(6)) {
 
-                    follower.overallmulti = 0.7;
-                    follower.setTarget(LAUNCH);
+                    follower.overallmulti = 0.5;
+                    follower.setTarget(LAUNCH,8000);
 
                     setCases(CASES.LAUNCHTHIRD);
                 }
@@ -192,13 +199,13 @@ public class farRed extends OpMode {
                 if (localization.getX() < 115) {
                     modules.intake.setManualPower(1);
                 }
-                if (follower.reachedTargetAndStopped(6)) {
+                if (follower.reachedTargetAndStopped(6) ||follower.timeout()) {
                     if (shooting == 1) {
                         Launch();
                     }
                 }
                 else shootingtimer.reset();
-                if (follower.reachedTarget(6) && shooting == 0) {
+                if ((follower.reachedTarget(6) || follower.timeout()   ) && shooting == 0) {
                     shooting = 1;
                     shootingcase = 0;
                     follower.setTarget(LINIA3);
@@ -285,7 +292,7 @@ public class farRed extends OpMode {
 
                     if (shootingtimer.milliseconds() > 450) {
                         modules.spinner.setAuto(380);
-                        if (modules.spinner.getRealCurrentPosition() > 370)
+                        if (modules.spinner.getRealCurrentPosition() > 360)
                             shootingcase++;
 
                     }

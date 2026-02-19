@@ -141,6 +141,8 @@ public class TeleopR extends OpMode {
         telemetry.addData("spinner2", modules.spinner.getTarget());
         telemetry.addData("robotToGoalVector", control.robotToGoalVector);
         telemetry.addData("sdas", modules.spinner.spinner.motor.motor.getCurrent(CurrentUnit.AMPS));
+        telemetry.addData("sdas", modules.lTur.lastangle);
+        telemetry.addData("sdas",modules.lTur.updatelast(control.anglenorm));
 
         telemetry.update();
     }

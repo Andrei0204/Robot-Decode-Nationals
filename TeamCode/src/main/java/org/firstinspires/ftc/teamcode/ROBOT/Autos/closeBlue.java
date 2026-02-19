@@ -51,9 +51,9 @@ public class closeBlue extends OpMode {
    Pose LAUNCH = new Pose(50.5, 81.1, Math.toRadians(180));
 
    Pose LINIA1C = new Pose(8.5, 81.5, Math.toRadians(180));
-    Pose LINIA2 = new Pose(40.5, 54.3, Math.toRadians(180));
+    Pose LINIA2 = new Pose(41, 54.3, Math.toRadians(180));
     Pose LINIA2C = new Pose(4.5    , 54.3, Math.toRadians(180));
-    Pose LINIA3 = new Pose(40.5, 30.3, Math.toRadians(180));
+    Pose LINIA3 = new Pose(41, 30.3, Math.toRadians(180));
     Pose LINIA3C = new Pose(4.5, 30.3, Math.toRadians(180));
     Pose GATE1 = new Pose(10.5, 69, Math.toRadians(180));
     Pose GATE2 = new Pose(6, 47, Math.toRadians(150));
@@ -61,7 +61,7 @@ public class closeBlue extends OpMode {
     Pose GATEOTW = new Pose(41.5, 54, Math.toRadians(180));
     //    Pose GATE2 = new Pose(133, 52, Math.toRadians(45));
     //    Pose GATE2 = new Pose(135, 46.8, Math.toRadians(55));
-    Pose PARK = new Pose(33.5, 79.0, Math.toRadians(180));
+    Pose PARK = new Pose(33.5, 79.0, Math.toRadians(190));
 
 
     @Override

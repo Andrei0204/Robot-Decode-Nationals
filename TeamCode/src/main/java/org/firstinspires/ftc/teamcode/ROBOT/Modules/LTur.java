@@ -8,12 +8,14 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IRobotModule;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.Wrappers.IStateBasedModule;
+
 @Config
 public class LTur implements IRobotModule, IStateBasedModule {
     public static double target = 0; //cm
     public static double startpos = 0;
     public static double auto = 0.3;
-    public static   double angle = 104;
+    public static   double angle = 105;
+    public static   double lastangle = 0;
     public static   double ticks = 0.00297;
     private static boolean ENABLED = true;
 
@@ -27,12 +29,12 @@ public class LTur implements IRobotModule, IStateBasedModule {
     public static final double TURTICKS = TICKS435 *4.5;    //test
     public static double TICKSDEG = TURTICKS/360;
 
-    public LTur.State state;
+    public State state;
 
 
     public static double profileMaxVelocity = 15, profileAcceleration = 12, profileDeceleration = 10;
 
-    public LTur(HardwareMap hardwareMap, LTur.State initialState) {
+    public LTur(HardwareMap hardwareMap, State initialState) {
         if (!ENABLED) {
 
 
@@ -78,11 +80,11 @@ public class LTur implements IRobotModule, IStateBasedModule {
     }
 
 
-    public LTur.State getState() {
+    public State getState() {
         return state;
     }
 
-    public void setState(LTur.State newState) {
+    public void setState(State newState) {
         if (state == newState) return;
         this.state = newState;
     }
@@ -100,8 +102,30 @@ public class LTur implements IRobotModule, IStateBasedModule {
                 auto = downmax;
             if (auto > upmax)
                 auto = upmax;
+            lastangle = auto;
         }
         else angle=0;
+    }
+
+    public double updatelast(double angle ){
+        if(angle==angle ) {
+            angle = angle + this.angle;
+
+            double upmax = 0.85;
+            double downmax = 0;
+            double tickstodegree = ticks;
+            double last = angle * tickstodegree;
+            if (last < downmax)
+                last = downmax;
+            if (last > upmax)
+                last = upmax;
+          return   lastangle = last;
+        }
+        else
+            return 0;
+    }
+    public double getAuto(){
+        return auto;
     }
     @Override
     public void update() {
@@ -134,7 +158,7 @@ public class LTur implements IRobotModule, IStateBasedModule {
     public enum State {
         START(startpos),
         AUTO(auto);
-        public final LTur.State nextState;
+        public final State nextState;
         public double position;
 
         State(double position) {
@@ -142,10 +166,11 @@ public class LTur implements IRobotModule, IStateBasedModule {
             this.nextState = this;
         }
 
-        State(double position, LTur.State nextState) {
+        State(double position, State nextState) {
             this.position = position;
             this.nextState = nextState;
         }
     }
 
 }
+

@@ -49,14 +49,9 @@ public class closeRed extends OpMode {
     double auto = 0;
 
     Pose START = new Pose(110.5, 131.6, Math.toRadians(0));
-    Pose LAUNCH = new Pose(91
-
-
-
-
-            , 81.1, Math.toRadians(0));
+    Pose LAUNCH = new Pose(91, 81.1, Math.toRadians(0));
     Pose LINIA1 = new Pose(101.0, 81.5, Math.toRadians(0));
-    Pose LINIA1C = new Pose(133, 81.5, Math.toRadians(0));
+    Pose LINIA1C = new Pose(134, 81.5, Math.toRadians(0));
     Pose LINIA2 = new Pose(101.0, 54.3, Math.toRadians(0));
     Pose LINIA2C = new Pose(139, 54.3, Math.toRadians(0));
     Pose LINIA3 = new Pose(101.0, 30.3, Math.toRadians(0));
@@ -67,7 +62,7 @@ public class closeRed extends OpMode {
     Pose GATEOTW = new Pose(100, 54, Math.toRadians(0));
     //    Pose GATE2 = new Pose(133, 52, Math.toRadians(45));
     //    Pose GATE2 = new Pose(135, 46.8, Math.toRadians(55));
-    Pose PARK = new Pose(108.0, 79.0, Math.toRadians(0));
+    Pose PARK = new Pose(108.0, 79.0, Math.toRadians(10));
 
     @Override
     public void init() {

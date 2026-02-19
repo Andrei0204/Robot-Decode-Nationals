@@ -49,19 +49,19 @@ public class farRed extends OpMode {
     double auto = 0;
 
     Pose START = new Pose(110.5, 131.6, Math.toRadians(0));
-    Pose LAUNCH = new Pose(80, 17, Math.toRadians(0));
-    public static   Pose PRE1 = new Pose(125, 30, Math.toRadians(-40));
-    public static   Pose PRE2 = new Pose(125, 10, Math.toRadians(-20));
-    public static Pose PRE3 = new Pose(131, 5  , Math.toRadians(20));
+    Pose LAUNCH = new Pose(82, 17, Math.toRadians(0));
+    public static   Pose PRE1 = new Pose(127, 30, Math.toRadians(-40));
+    public static   Pose PRE2 = new Pose(127, 10, Math.toRadians(-20));
+    public static Pose PRE3 = new Pose(133, 5  , Math.toRadians(20));
 
 //    Pose PRE1 = new Pose(131, 7.5,Math.toRadians(-0));
 //    Pose PRE2 = new Pose(135, 7.5, Math.toRadians(0));
 //    Pose PRE3 = new Pose(135, 7.5, Math.toRadians(0));
-public static    Pose LINIA3 = new Pose(95, 39, Math.toRadians(0));
-    Pose LINIA3C = new Pose(131, 30.3, Math.toRadians(0));
+public static    Pose LINIA3 = new Pose(97, 39, Math.toRadians(0));
+    Pose LINIA3C = new Pose(133, 30.3, Math.toRadians(0));
     //    Pose GATE2 = new Pose(133, 52, Math.toRadians(45));
     //    Pose GATE2 = new Pose(135, 46.8, Math.toRadians(55));
-    Pose PARK = new Pose(106, 17, Math.toRadians(0));
+    Pose PARK = new Pose(108, 17, Math.toRadians(0));
 
     @Override
     public void init() {
@@ -98,7 +98,7 @@ public static    Pose LINIA3 = new Pose(95, 39, Math.toRadians(0));
 
     @Override
     public void start() {
-        odo.setPosition(new Pose2D(DistanceUnit.INCH, 81, 7.5, AngleUnit.DEGREES, 0));
+        odo.setPosition(new Pose2D(DistanceUnit.INCH, 79, 7.5, AngleUnit.DEGREES, 0));
         modules.spinner.setRunMode(Spinner.EXTRUNMODE.PID);
         modules.spinner.setState(Spinner.State.TEST);
         modules.intake.setState(Intake.State.MANUAL);

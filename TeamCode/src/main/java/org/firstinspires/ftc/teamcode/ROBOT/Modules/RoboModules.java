@@ -12,17 +12,18 @@ public class RoboModules implements IRobotModule {
     public Intake intake=null;
     public Pivot pivot=null;
     public Launcher launcher=null;
-    Color color= new Color();
-    Color color2= new Color();
-    Color color3= new Color();
-    Distance distance= new Distance();
-    Distance distance2= new Distance();
-    Distance distance3= new Distance();
-
-    DistanceC distancec= new DistanceC();
-    DistanceC distance2c= new DistanceC();
-    DistanceC distance3c= new DistanceC();
+//    Color color= new Color();
+//    Color color2= new Color();
+//    Color color3= new Color();
+//    Distance distance= new Distance();
+    public Distance distance2= new Distance();
+//    Distance distance3= new Distance();
+//
+//    DistanceC distancec= new DistanceC();
+    public DistanceC distance2c= new DistanceC();
+//    DistanceC distance3c= new DistanceC();
     public Servo bec;
+
 
 
 
@@ -45,13 +46,13 @@ public class RoboModules implements IRobotModule {
     }
 
     public void  sensorstart(){
-
-        distancec.sinit(hardwareMap,"C1");
+//        distancec.sinit(hardwareMap,"C1");
+//        distance2c.sinit(hardwareMap,"C2");
+//        distance3c.sinit(hardwareMap,"C3");
+//        distance.sinit(hardwareMap,"D1");
         distance2c.sinit(hardwareMap,"C2");
-        distance3c.sinit(hardwareMap,"C3");
-        distance.sinit(hardwareMap,"D1");
-        distance2.sinit(hardwareMap,"D2");
-        distance3.sinit(hardwareMap,"D3");
+        distance2.sinit(hardwareMap,"D2C");
+//        distance3.sinit(hardwareMap,"D3");
     }
     @Override
     public void update()  {

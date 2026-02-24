@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.field.Style;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -20,6 +21,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
+import org.firstinspires.ftc.teamcode.ROBOT.Modules.ShooterConstants;
 
 import java.util.List;
 import java.util.Locale;
@@ -81,6 +83,8 @@ public class TeleopB extends OpMode {
         FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         control.red=0;
+        control.auto=0;
+        ShooterConstants.restartpos();
         modules.sensorstart();
 //        c1= hardwareMap.get(NormalizedColorSensor.class,"C1");
 //        c2= hardwareMap.get(NormalizedColorSensor.class,"C2");
@@ -106,6 +110,19 @@ public class TeleopB extends OpMode {
 
     @Override
     public void loop() {
+        if(gamepad2.a)
+            control.setSwm(1);
+        if(gamepad2.b)
+            control.setSwm(0);
+        if(gamepad2.dpadUpWasPressed())
+            ShooterConstants.SCORE_HEIGHT_FAR = ShooterConstants.SCORE_HEIGHT_FAR+0.5;
+        if(gamepad2.dpadDownWasPressed())
+            ShooterConstants.SCORE_HEIGHT_FAR = ShooterConstants.SCORE_HEIGHT_FAR-0.5;
+
+        if(gamepad2.dpadLeftWasPressed())
+            ShooterConstants.GOAL_POS_BLUE= new Pose(ShooterConstants.GOAL_POS_BLUE.getX()-1,ShooterConstants.GOAL_POS_BLUE.getY());
+        if(gamepad2.dpadRightWasPressed())
+            ShooterConstants.GOAL_POS_BLUE= new Pose(ShooterConstants.GOAL_POS_BLUE.getX()+1,ShooterConstants.GOAL_POS_BLUE.getY());
         if (gamepad1.share) {
             odo.setPosition(new Pose2D(DistanceUnit.INCH, 7.7, 7.5, AngleUnit.DEGREES, 90));
         }

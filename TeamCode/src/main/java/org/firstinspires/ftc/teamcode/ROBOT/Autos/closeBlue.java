@@ -50,7 +50,7 @@ public class closeBlue extends OpMode {
 
    Pose LAUNCH = new Pose(50.5, 81.1, Math.toRadians(180));
 
-   Pose LINIA1C = new Pose(8.5, 81.5, Math.toRadians(180));
+   Pose LINIA1C = new Pose(6.5, 81.5, Math.toRadians(180));
     Pose LINIA2 = new Pose(41, 54.3, Math.toRadians(180));
     Pose LINIA2C = new Pose(4.5    , 54.3, Math.toRadians(180));
     Pose LINIA3 = new Pose(41, 30.3, Math.toRadians(180));
@@ -84,7 +84,7 @@ public class closeBlue extends OpMode {
         isstucktimer = new ElapsedTime();
         modules = new RoboModules(hardwareMap);
         control = new RobotControl(gamepad1, gamepad2, modules, odo);
-
+        modules.sensorstart();
         follower.setTarget(new Pose(0, 0, Math.toRadians(90)));
         control.red = 0;
         control.auto=1;
@@ -219,7 +219,7 @@ public class closeBlue extends OpMode {
                 break;
             case LAUNCHFIRST:
                 follower.overallmulti = 1;
-                if (localization.getX() > 30)
+                if (localization.getX() > 30|| (modules.distance2.getDetection() < 150))
                     modules.intake.setManualPower(1);
                 if (follower.reachedTarget(12)||follower.timeout()) {
 
@@ -254,7 +254,7 @@ public class closeBlue extends OpMode {
                 }
                 break;
             case LAUNCHTHIRD:
-                if (localization.getX() > 20)
+                if (localization.getX() > 20|| (modules.distance2.getDetection() < 150))
                     modules.intake.setManualPower(1);
                 if (follower.reachedTarget(12)|| follower.timeout()) {
 
@@ -273,8 +273,7 @@ public class closeBlue extends OpMode {
 
         }
 
-//        if (localization.getY() < 125)
-        control.UpLaunch();
+   control.UpLaunch();
         follower.update();
         odo.update();
         modules.update();

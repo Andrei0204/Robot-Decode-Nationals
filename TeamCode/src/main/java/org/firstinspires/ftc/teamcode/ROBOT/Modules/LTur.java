@@ -14,9 +14,10 @@ public class LTur implements IRobotModule, IStateBasedModule {
     public static double target = 0; //cm
     public static double startpos = 0;
     public static double auto = 0.3;
-    public static   double angle = 105;
+    public static   double angle = 106;
     public static   double lastangle = 0;
     public static   double ticks = 0.00297;
+    public static   double offsetpos = 0.001;
     private static boolean ENABLED = true;
 
     public DcMotor turret = null;
@@ -151,7 +152,7 @@ public class LTur implements IRobotModule, IStateBasedModule {
 
     @Override
     public void updateHardware() {
-        T1.setPosition(target);
+        T1.setPosition(target+offsetpos);
         T2.setPosition(target);
     }
 

@@ -120,7 +120,7 @@ public class Follower {
 
     public void setTarget(com.pedropathing.geometry.Pose target, double timer) {
         Pose conversion = new Pose(target.getX(), target.getY(), target.getHeading());
-        if (!Objects.equals(this.target, conversion))
+        if (this.target!=conversion)
             pathtimer.reset();
         this.target = conversion;
         istimed = 1;

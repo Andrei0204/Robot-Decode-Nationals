@@ -37,12 +37,13 @@ public class RobotControl implements IRobotModule {
     public static double red = 1;
     public double isstuck = 0;
     public double rec = 0.25;
-    public static double recf = 0.25;
-    public static double recc = 0.1;
-    public static double counterf = 270;
+    public static double recf = 0.4;
+    public static double recc = 0.2;
+    public static double counterf = 280;
     public static double counterc = 180;
     public static double magnitude = 110;
-    public static double turerror = 0.002;
+    public static double turerror = 0.00;
+    public static double swmspeed = 20;
     public int shootingcase = 0;
 
     public int swm = 1;
@@ -96,13 +97,15 @@ public class RobotControl implements IRobotModule {
 
         if (sensortimer.milliseconds() > 350) {
             sensortimer.reset();
-            if ((modules.distance2.getDetection() < 120 || modules.distance2c.getDetection() < 20)
-
-                    && Math.abs(modules.spinner.getRealCurrentPosition()) - 15 < 0 &&
-                    !gamepad1.right_bumper) {
-                reversetimer.reset();
-                modules.intake.setManualPower(1);
+            if ((modules.distance2.getDetection() < 150)
+                    && Math.abs(modules.spinner.getRealCurrentPosition()) - 15 < 0) {
+//                if (!gamepad1.right_bumper) {
+                    reversetimer.reset();
+                    modules.intake.setManualPower(1);
+//                }
+                gamepad1.rumble(1000);
             }
+
         }
     }
 
@@ -142,28 +145,35 @@ public class RobotControl implements IRobotModule {
             modules.intake.setManualPower(0);
             shootingcase = 0;
             shooting = 1;
-            modules.spinner.setAuto(120);
+            isstucktimer.reset();
+            isstuck=0;
+            modules.spinner.setAuto(130);
             shootingtimer.reset();
             modules.spinner.setRunMode(Spinner.EXTRUNMODE.PID);
             modules.spinner.setState(Spinner.State.TEST);
+            current.reset();
+            stuckpos = 0;
         }
         if (shooting == 1) {
 
-            if (modules.spinner.spinner.motor.motor.getCurrent(CurrentUnit.AMPS) > 7 && isstuck != 1) {
-                if (current.milliseconds() > 250) {
+            if (modules.spinner.spinner.motor.motor.getCurrent(CurrentUnit.AMPS) > 8 && isstuck != 1) {
+                if (current.milliseconds() > 500) {
                     stuckpos = modules.spinner.getRealCurrentPosition();
                     isstucktimer.reset();
                     isstuck = 1;
                 }
             } else
                 current.reset();
+
             if (isstuck == 1) {
 
                 modules.spinner.setAuto(stuckpos - 80);
                 if (isstucktimer.milliseconds() > 400)
                     isstuck = 0;
 
-            } else {
+            }
+
+            else {
 
                 switch (shootingcase) {
                     case 0:
@@ -290,6 +300,10 @@ public class RobotControl implements IRobotModule {
             y = ShooterConstants.SCORE_HEIGHT_FAR;
             a = ShooterConstants.SCORE_ANGLE_FAR;
         }
+        if(odo.getVelX(DistanceUnit.CM) <= swmspeed && Math.abs(odo.getVelY(DistanceUnit.CM) )<=swmspeed)
+        {
+            swm=0;
+        }
 //calculate initial launch components
         double hoodAngle = MathFunctions.clamp(Math.atan(2 * y / x - Math.tan(a)), Math.toRadians(30),
                 Math.toRadians(55));
@@ -312,11 +326,17 @@ public class RobotControl implements IRobotModule {
             hoodAngle = MathFunctions.clamp(Math.atan(vz / nvr), Math.toRadians(30), Math.toRadians(55));
             flywheelSpeed = Math.sqrt(g * ndr * ndr / (2 * Math.pow(Math.cos(hoodAngle), 2) * (ndr * Math.tan(hoodAngle) - y)));
             if (swmtur == 1)
+//                turretVelComp = 0;/
                 turretVelComp = Math.atan(perpendicularComponent / ivr);
-
         }
 
 
+//        if(robotToGoalVector.getMagnitude()<75 && auto==0)
+//        {
+//            counter = 0;
+//            rec = 0.9;
+//
+//        }
         if (compensation == 1) {
             if (modules.launcher.Motorvel() < modules.launcher.getLaunchtoRpm(flywheelSpeed) * 100 - 1)
                 modules.pivot.setangle(90 - Math.toDegrees(hoodAngle) - rec * (modules.launcher.getLaunchtoRpm(flywheelSpeed) * 100 - modules.launcher.Motorvel()));

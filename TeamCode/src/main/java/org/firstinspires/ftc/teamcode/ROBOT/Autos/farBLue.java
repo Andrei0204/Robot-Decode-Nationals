@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -17,11 +18,13 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.Follower;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Intake;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
+import org.firstinspires.ftc.teamcode.ROBOT.Modules.ShooterConstants;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Spinner;
 //import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Pose;
 import com.pedropathing.geometry.Pose;
 import java.util.List;
 import java.util.Locale;
+@Disabled
 
 @Config
 @Configurable
@@ -79,6 +82,7 @@ public class farBLue extends OpMode {
         follower.setTarget(new Pose(0, 0, Math.toRadians(90)));
         control.red = 0;
         control.auto=0;
+        ShooterConstants.restartpos();
     }
 
     @Override

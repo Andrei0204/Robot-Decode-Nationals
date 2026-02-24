@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.Follower;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Intake;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
+import org.firstinspires.ftc.teamcode.ROBOT.Modules.ShooterConstants;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.Spinner;
 import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Pose;
 
@@ -26,6 +28,7 @@ import java.util.Locale;
 @Config
 @Configurable
 @Autonomous
+@Disabled
 public class farRed extends OpMode {
 
     ElapsedTime timer;
@@ -49,20 +52,22 @@ public class farRed extends OpMode {
     double auto = 0;
 
     Pose START = new Pose(110.5, 131.6, Math.toRadians(0));
-    Pose LAUNCH = new Pose(82, 17, Math.toRadians(0));
-    public static   Pose PRE1 = new Pose(127, 30, Math.toRadians(-40));
-    public static   Pose PRE2 = new Pose(127, 10, Math.toRadians(-20));
-    public static Pose PRE3 = new Pose(133, 5  , Math.toRadians(20));
+    Pose LAUNCH = new Pose(87, 17, Math.toRadians(0));
+    public static Pose PRE1 = new Pose(127.5, 30, Math.toRadians(-40));
+    public static Pose PRE2 = new Pose(127.5, 4, Math.toRadians(-20));
 
-//    Pose PRE1 = new Pose(131, 7.5,Math.toRadians(-0));
+    public static Pose PRE3 = new Pose(133.5, 4, Math.toRadians(20));
+
+    //    Pose PRE1 = new Pose(131, 7.5,Math.toRadians(-0));
 //    Pose PRE2 = new Pose(135, 7.5, Math.toRadians(0));
 //    Pose PRE3 = new Pose(135, 7.5, Math.toRadians(0));
-public static    Pose LINIA3 = new Pose(97, 39, Math.toRadians(0));
+    public static Pose LINIA3 = new Pose(97, 39, Math.toRadians(0));
     Pose LINIA3C = new Pose(133, 30.3, Math.toRadians(0));
     //    Pose GATE2 = new Pose(133, 52, Math.toRadians(45));
     //    Pose GATE2 = new Pose(135, 46.8, Math.toRadians(55));
     Pose PARK = new Pose(108, 17, Math.toRadians(0));
-
+    public static Pose COLLECT = new Pose(129, 15, Math.toRadians(-10));
+    public static Pose COLLECT2 = new Pose(129, 10, Math.toRadians(-20));
     @Override
     public void init() {
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
@@ -86,6 +91,8 @@ public static    Pose LINIA3 = new Pose(97, 39, Math.toRadians(0));
 
         follower.setTarget(new Pose(0, 0, Math.toRadians(90)));
         control.red = 1;
+        control.auto = 0;
+        ShooterConstants.restartpos();
     }
 
     @Override
@@ -117,7 +124,7 @@ public static    Pose LINIA3 = new Pose(97, 39, Math.toRadians(0));
         switch (cases) {
             case GOTOPREANDLAUNCH:
                 follower.setTarget(LAUNCH);
-                if (timer.milliseconds() > 1700) {
+                if (timer.milliseconds() > 1600) {
                     if (follower.reachedTargetAndStopped(6)) {
                         if (shooting == 1) {
                             Launch();
@@ -126,7 +133,7 @@ public static    Pose LINIA3 = new Pose(97, 39, Math.toRadians(0));
                     if (follower.reachedTarget(6) && shooting == 0) {
                         shooting = 1;
                         shootingcase = 0;
-                        follower.setTarget(PRE1,2000);
+                        follower.setTarget(PRE1, 2000);
                         follower.overallmulti = 1;
                         modules.intake.setManualPower(-1);
                         setCases(CASES.GOTOCOLLECT);
@@ -142,15 +149,14 @@ public static    Pose LINIA3 = new Pose(97, 39, Math.toRadians(0));
                 }
                 break;
             case PRECOLLECT:
-                if(timer.milliseconds()>2000)
-                {
+                if (timer.milliseconds() > 600) {
                     follower.setTarget(PRE3);
                     timer.reset();
                     setCases(CASES.COLLECT);
                 }
                 break;
             case COLLECT:
-                if (timer.milliseconds() > 1500) {
+                if (timer.milliseconds() > 1000) {
                     follower.overallmulti = 1;
                     follower.setTarget(LAUNCH);
                     setCases(CASES.GOTOLAUNCH);
@@ -160,12 +166,11 @@ public static    Pose LINIA3 = new Pose(97, 39, Math.toRadians(0));
                 if (localization.getX() < 90) {
                     modules.intake.setManualPower(1);
                 }
-                if (follower.reachedTargetAndStopped(6) && localization.getX()<90) {
+                if (follower.reachedTargetAndStopped(6) && localization.getX() < 90) {
                     if (shooting == 1) {
                         Launch();
                     }
-                }
-                else shootingtimer.reset();
+                } else shootingtimer.reset();
                 if (follower.reachedTarget(6) && shooting == 0) {
                     shooting = 1;
                     shootingcase = 0;
@@ -189,8 +194,8 @@ public static    Pose LINIA3 = new Pose(97, 39, Math.toRadians(0));
                 follower.overallmulti = 0.4;
                 if (follower.reachedTarget(6)) {
 
-                    follower.overallmulti = 0.5;
-                    follower.setTarget(LAUNCH,8000);
+                    follower.overallmulti = 0.8;
+                    follower.setTarget(LAUNCH, 8000);
 
                     setCases(CASES.LAUNCHTHIRD);
                 }
@@ -199,19 +204,54 @@ public static    Pose LINIA3 = new Pose(97, 39, Math.toRadians(0));
                 if (localization.getX() < 115) {
                     modules.intake.setManualPower(1);
                 }
-                if (follower.reachedTargetAndStopped(6) ||follower.timeout()) {
+                if (follower.reachedTargetAndStopped(6) || follower.timeout()) {
                     if (shooting == 1) {
                         Launch();
                     }
-                }
-                else shootingtimer.reset();
-                if ((follower.reachedTarget(6) || follower.timeout()   ) && shooting == 0) {
+                } else shootingtimer.reset();
+                if ((follower.reachedTarget(6) || follower.timeout()) && shooting == 0) {
                     shooting = 1;
                     shootingcase = 0;
                     follower.setTarget(LINIA3);
                     follower.overallmulti = 1;
                     modules.intake.setManualPower(-1);
-                    setCases(CASES.PARK);
+                    setCases(CASES.COLLECTMORE);
+                    timer.reset();
+                }
+                break;
+            case COLLECTMORE:
+                if(cycles==1)
+                    follower.setTarget(COLLECT, 3000);
+                else
+                    follower.setTarget(COLLECT2, 3000);
+                if ((follower.reachedTarget(4) && timer.milliseconds() > 1000) || follower.timeout()) {
+                    modules.intake.setManualPower(1);
+                    setCases(CASES.LAUNCHCYCLE);
+                    follower.setTarget(LAUNCH, 8000);
+
+                } else
+                    timer.reset();
+                break;
+            case LAUNCHCYCLE:
+                if (localization.getX() < 115) {
+                    modules.intake.setManualPower(1);
+                }
+                if (follower.reachedTargetAndStopped(6) || follower.timeout()) {
+                    if (shooting == 1) {
+                        Launch();
+                    }
+                } else shootingtimer.reset();
+                if ((follower.reachedTarget(6) || follower.timeout()) && shooting == 0) {
+                    shooting = 1;
+                    shootingcase = 0;
+                    follower.setTarget(LINIA3);
+                    follower.overallmulti = 1;
+                    modules.intake.setManualPower(-1);
+                    setCases(CASES.COLLECTMORE);
+                    cycles++;
+                    if (cycles > 2)
+                        setCases(CASES.PARK);
+                    timer.reset();
                 }
                 break;
             case PARK:
@@ -243,6 +283,8 @@ public static    Pose LINIA3 = new Pose(97, 39, Math.toRadians(0));
         COLLECT,
         GOTOLAUNCH,
         PRECOLLECT,
+        COLLECTMORE,
+        LAUNCHCYCLE,
         COLLECTSECOND,
         LAUNCHSEC,
         TOGATE,
@@ -282,7 +324,7 @@ public static    Pose LINIA3 = new Pose(97, 39, Math.toRadians(0));
                     break;
                 case 1:
 
-                    if (shootingtimer.milliseconds() > 300) {
+                    if (shootingtimer.milliseconds() > 180) {
                         modules.spinner.setAuto(220);
                         shootingcase++;
                         shootingtimer.reset();
@@ -290,7 +332,7 @@ public static    Pose LINIA3 = new Pose(97, 39, Math.toRadians(0));
                     break;
                 case 2:
 
-                    if (shootingtimer.milliseconds() > 450) {
+                    if (shootingtimer.milliseconds() > 290) {
                         modules.spinner.setAuto(380);
                         if (modules.spinner.getRealCurrentPosition() > 360)
                             shootingcase++;

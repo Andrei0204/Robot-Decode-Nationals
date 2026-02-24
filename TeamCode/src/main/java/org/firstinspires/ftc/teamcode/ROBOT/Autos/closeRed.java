@@ -51,13 +51,13 @@ public class closeRed extends OpMode {
     Pose START = new Pose(110.5, 131.6, Math.toRadians(0));
     Pose LAUNCH = new Pose(91, 81.1, Math.toRadians(0));
     Pose LINIA1 = new Pose(101.0, 81.5, Math.toRadians(0));
-    Pose LINIA1C = new Pose(134, 81.5, Math.toRadians(0));
+    Pose LINIA1C = new Pose(138, 81.5, Math.toRadians(0));
     Pose LINIA2 = new Pose(101.0, 54.3, Math.toRadians(0));
     Pose LINIA2C = new Pose(139, 54.3, Math.toRadians(0));
-    Pose LINIA3 = new Pose(101.0, 30.3, Math.toRadians(0));
-    Pose LINIA3C = new Pose(137, 30.3, Math.toRadians(0));
+    Pose LINIA3 = new Pose(101.0, 29, Math.toRadians(0));
+    Pose LINIA3C = new Pose(137, 29, Math.toRadians(0));
     Pose GATE1 = new Pose(131, 69, Math.toRadians(0));
-    Pose GATE2 = new Pose(134, 47, Math.toRadians(30));
+    Pose GATE2 = new Pose(134.6, 47, Math.toRadians(30));
     //    Pose GATE1 = new Pose(132, 52.5, Math.toRadians(31));
     Pose GATEOTW = new Pose(100, 54, Math.toRadians(0));
     //    Pose GATE2 = new Pose(133, 52, Math.toRadians(45));
@@ -84,7 +84,7 @@ public class closeRed extends OpMode {
         isstucktimer = new ElapsedTime();
         modules = new RoboModules(hardwareMap);
         control = new RobotControl(gamepad1, gamepad2, modules, odo);
-
+        modules.sensorstart();
         follower.setTarget(new Pose(0, 0, Math.toRadians(90)));
         control.red = 1;
     }
@@ -220,7 +220,7 @@ public class closeRed extends OpMode {
                 break;
             case LAUNCHFIRST:
                 follower.overallmulti = 1;
-                if (localization.getX() < 110)
+                if (localization.getX() < 110 || (modules.distance2.getDetection() < 150))
                     modules.intake.setManualPower(1);
                 if (follower.reachedTarget(12)||follower.timeout()) {
 
@@ -255,7 +255,7 @@ public class closeRed extends OpMode {
                 }
                 break;
             case LAUNCHTHIRD:
-                if (localization.getX() < 120)
+                if (localization.getX() < 120 || (modules.distance2.getDetection() < 150))
                     modules.intake.setManualPower(1);
                 if (follower.reachedTarget(12)|| follower.timeout()) {
 

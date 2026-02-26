@@ -110,6 +110,9 @@ public class TeleopB extends OpMode {
 
     @Override
     public void loop() {
+        Pose2D pos = odo.getPosition();
+        String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
+
         if(gamepad2.a)
             control.setSwm(1);
         if(gamepad2.b)
@@ -125,6 +128,18 @@ public class TeleopB extends OpMode {
             ShooterConstants.GOAL_POS_BLUE= new Pose(ShooterConstants.GOAL_POS_BLUE.getX()+1,ShooterConstants.GOAL_POS_BLUE.getY());
         if (gamepad1.share) {
             odo.setPosition(new Pose2D(DistanceUnit.INCH, 7.7, 7.5, AngleUnit.DEGREES, 90));
+        }
+        if(gamepad2.y)
+        {
+            double h = pos.getHeading(AngleUnit.DEGREES);
+            odo.setPosition(new Pose2D(DistanceUnit.INCH, 78, 22.6, AngleUnit.DEGREES, h));
+            ShooterConstants.restartpos();
+        }
+        if(gamepad2.x)
+        {
+            double h = pos.getHeading(AngleUnit.DEGREES);
+            odo.setPosition(new Pose2D(DistanceUnit.INCH, 78, 73, AngleUnit.DEGREES, h));
+            ShooterConstants.restartpos();
         }
         odo.update();
         if (gamepad1.left_stick_button) {
@@ -144,9 +159,7 @@ public class TeleopB extends OpMode {
         modules.update();
         control.update();
 
-        Pose2D pos = odo.getPosition();
-        String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
-        telemetry.addData("Position", data);
+  telemetry.addData("Position", data);
 
 
         telemetry.addData("spinner", modules.launcher.Motorvel());

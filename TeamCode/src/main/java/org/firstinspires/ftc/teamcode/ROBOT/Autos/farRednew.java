@@ -51,7 +51,8 @@ public class farRednew extends OpMode {
 
     Pose START = new Pose(110.5, 131.6, Math.toRadians(0));
     Pose LAUNCH = new Pose(87, 17, Math.toRadians(0));
-    public static Pose PRE1 = new Pose(127.5, 30, Math.toRadians(-40));
+    Pose LAUNCH2 = new Pose(87, 17, Math.toRadians(20));
+    public static Pose PRE1 = new Pose(129.5, 30, Math.toRadians(-40));
     public static Pose PRE2 = new Pose(127.5, 4, Math.toRadians(-20));
 
     public static Pose PRE3 = new Pose(133.5, 4, Math.toRadians(20));
@@ -141,7 +142,7 @@ public class farRednew extends OpMode {
                 } else shootingtimer.reset();
                 break;
             case GOTOCOLLECT:
-                if (follower.reachedTarget(12) || follower.timeout()) {
+                if (follower.reachedTarget(10) || follower.timeout()) {
                     follower.overallmulti = 0.9;
                     follower.setTarget(PRE2);
                     timer.reset();
@@ -149,7 +150,7 @@ public class farRednew extends OpMode {
                 }
                 break;
             case PRECOLLECT:
-                if (timer.milliseconds() > 600) {
+                if (timer.milliseconds() > 800) {
                     follower.setTarget(PRE3);
                     timer.reset();
                     setCases(CASES.COLLECT);
@@ -163,7 +164,7 @@ public class farRednew extends OpMode {
                 }
                 break;
             case GOTOLAUNCH:
-                if (localization.getX() < 90 || (modules.distance2.getDetection() < 150)) {
+                if (localization.getX() < 90) {
                     modules.intake.setManualPower(1);
                 }
                 if (follower.reachedTargetAndStopped(6) && localization.getX() < 90) {
@@ -201,7 +202,7 @@ public class farRednew extends OpMode {
                 }
                 break;
             case LAUNCHTHIRD:
-                if (localization.getX() < 115 || (modules.distance2.getDetection() < 150)) {
+                if (localization.getX() < 115 ) {
                     modules.intake.setManualPower(1);
                 }
                 if (follower.reachedTargetAndStopped(6) || follower.timeout()) {
@@ -229,13 +230,13 @@ public class farRednew extends OpMode {
                     modules.intake.setManualPower(1);
                     setCases(CASES.LAUNCHCYCLE);
                     follower.overallmulti = 1;
-                    follower.setTarget(LAUNCH, 8000);
+                    follower.setTarget(LAUNCH2, 8000);
 
                 } else
                     timer.reset();
                 break;
             case LAUNCHCYCLE:
-                if (localization.getX() < 115 || (modules.distance2.getDetection() < 150)) {
+                if (localization.getX() < 115) {
                     modules.intake.setManualPower(1);
                 }
                 if (follower.reachedTargetAndStopped(6) || follower.timeout()) {

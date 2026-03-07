@@ -66,8 +66,8 @@ public class farBluenew extends OpMode {
     //    Pose GATE2 = new Pose(133, 52, Math.toRadians(45));
     //    Pose GATE2 = new Pose(135, 46.8, Math.toRadians(55));
     Pose PARK = new Pose(128, 17, Math.toRadians(0)).mirror();
-    public static Pose COLLECT = new Pose(137, 10, Math.toRadians(-10)).mirror();
-    public static Pose COLLECT2 = new Pose(137, 15, Math.toRadians(-20)).mirror();
+    public static Pose COLLECT = new Pose(137, 20, Math.toRadians(20)).mirror();
+    public static Pose COLLECT2 = new Pose(137, 25, Math.toRadians(20)).mirror();
 
     @Override
     public void init() {

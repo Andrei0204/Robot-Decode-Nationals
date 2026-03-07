@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 public class Launcher implements IStateBasedModule, IRobotModule {
 
-    public static double m = 10.8;
+    public static double m = 11.2;
     public static double n = 93;
     private static final Logger log = LoggerFactory.getLogger(Launcher.class);
     public static double TICKS_PER_REV = 28;
@@ -49,7 +49,7 @@ public class Launcher implements IStateBasedModule, IRobotModule {
 
     private static boolean ENABLED = true;
 
-
+    public static double comprpm = 0;
     public double manualPower = 0;
     public PIDCoefficients pid = new PIDCoefficients(kP, kI, kD);
 
@@ -167,7 +167,9 @@ public class Launcher implements IStateBasedModule, IRobotModule {
     }
 
     public double Motorvel() {
-        return -Revolutions(launcher2.encoder.getRawVelocity());
+        comprpm = -Revolutions(launcher2.encoder.getRawVelocity());
+
+        return comprpm;
     }
 
     public State getState() {

@@ -49,13 +49,14 @@ public class closeBlue extends OpMode {
     double auto = 0;
 
    Pose LAUNCH = new Pose(50.5, 81.1, Math.toRadians(180));
+    Pose LAUNCH2 = new Pose(56.5, 100, Math.toRadians(135));
 
    Pose LINIA1C = new Pose(6.5, 81.5, Math.toRadians(180));
-    Pose LINIA2 = new Pose(41, 54.3, Math.toRadians(180));
-    Pose LINIA2C = new Pose(4.5    , 54.3, Math.toRadians(180));
-    Pose LINIA3 = new Pose(41, 30.3, Math.toRadians(180));
-    Pose LINIA3C = new Pose(4.5, 30.3, Math.toRadians(180));
-    Pose GATE1 = new Pose(10.5, 69, Math.toRadians(180));
+    Pose LINIA2 = new Pose(41, 52, Math.toRadians(180));
+    Pose LINIA2C = new Pose(4.5    , 52, Math.toRadians(180));
+    Pose LINIA3 = new Pose(41, 28, Math.toRadians(180));
+    Pose LINIA3C = new Pose(4.5, 28, Math.toRadians(180));
+    Pose GATE1 = new Pose(10.5, 67, Math.toRadians(180));
     Pose GATE2 = new Pose(6, 47, Math.toRadians(150));
     //    Pose GATE1 = new Pose(132, 52.5, Math.toRadians(31));
     Pose GATEOTW = new Pose(41.5, 54, Math.toRadians(180));
@@ -63,6 +64,23 @@ public class closeBlue extends OpMode {
     //    Pose GATE2 = new Pose(135, 46.8, Math.toRadians(55));
     Pose PARK = new Pose(33.5, 79.0, Math.toRadians(190));
 
+
+
+
+//    Pose LAUNCH = new Pose(53, 81.1, Math.toRadians(180));
+//
+//    Pose LINIA1C = new Pose(6.5, 81.5, Math.toRadians(180));
+//    Pose LINIA2 = new Pose(41, 55, Math.toRadians(180));
+//    Pose LINIA2C = new Pose(4.5    , 55, Math.toRadians(180));
+//    Pose LINIA3 = new Pose(41, 33, Math.toRadians(180));
+//    Pose LINIA3C = new Pose(4.5, 33, Math.toRadians(180));
+//    Pose GATE1 = new Pose(10.5, 69, Math.toRadians(180));
+//    Pose GATE2 = new Pose(6, 47, Math.toRadians(150));
+//    //    Pose GATE1 = new Pose(132, 52.5, Math.toRadians(31));
+//    Pose GATEOTW = new Pose(41.5, 54, Math.toRadians(180));
+//    //    Pose GATE2 = new Pose(133, 52, Math.toRadians(45));
+//    //    Pose GATE2 = new Pose(135, 46.8, Math.toRadians(55));
+//    Pose PARK = new Pose(33.5, 79.0, Math.toRadians(190));
 
     @Override
     public void init() {
@@ -87,14 +105,19 @@ public class closeBlue extends OpMode {
         modules.sensorstart();
         follower.setTarget(new Pose(0, 0, Math.toRadians(90)));
         control.red = 0;
-        control.auto=1;
+        odo.setPosition(new Pose2D(DistanceUnit.INCH, 33, 131.6, AngleUnit.DEGREES, 180));
+
     }
 
     @Override
     public void init_loop() {
+
         if (gamepad1.dpad_down) {
             modules.spinner.spinner.resetEncoder();
         }
+        modules.lTur.setangle(45);
+        modules.lTur.update();
+//        modules.launcher.setAuto(0);
     }
 
 
@@ -108,18 +131,20 @@ public class closeBlue extends OpMode {
         modules.spinner.setAuto(0);
         control.setSwm(1);
         control.swmtur = 1;
+        control.auto=1;
 //        modules.sensorstart();
     }
 
     @Override
     public void loop() {
+        odo.update();
         Pose2D robopos = odo.getPosition();
         Pose localization = new Pose(robopos.getX(DistanceUnit.INCH), robopos.getY(DistanceUnit.INCH), robopos.getHeading(AngleUnit.RADIANS));
 
         switch (cases) {
             case GOTOPREANDLAUNCH:
                 follower.setTarget(LAUNCH, 3000);
-                if (follower.reachedTarget(12)) {
+                if (localization.getY() < 100) {
                     if (shooting == 1)
                         Launch();
                 } else shootingtimer.reset();
@@ -134,7 +159,7 @@ public class closeBlue extends OpMode {
             case GOTOSECOND:
                 follower.setTarget(LINIA2,1600);
                 modules.intake.setManualPower(-1);
-                if ((follower.reachedTarget(6) && follower.reachedHeading(Math.toRadians(10)) ||follower.timeout()))
+                if ((follower.reachedTarget(9) && follower.reachedHeading(Math.toRadians(10)) ||follower.timeout()))
                     setCases(CASES.COLLECTSECOND);
                 break;
             case COLLECTSECOND:
@@ -149,7 +174,7 @@ public class closeBlue extends OpMode {
                 }
                 break;
             case LAUNCHSEC:
-                if (follower.reachedTarget(12)||follower.timeout()) {
+                if (follower.reachedTarget(10)||follower.timeout()) {
                     modules.intake.setManualPower(1);
                     if (shooting == 1)
                         Launch();
@@ -164,6 +189,8 @@ public class closeBlue extends OpMode {
                 }
                 break;
             case TOGATE:
+
+//                control.setSwm(0);
                 follower.setTarget(GATEOTW,2000);
                 modules.intake.setManualPower(-1);
                 if (follower.reachedTarget(15)||follower.timeout()) {
@@ -193,7 +220,7 @@ public class closeBlue extends OpMode {
                 else timer.reset();
                 break;
             case COLLECTGATE:
-                if (timer.milliseconds() > 2000) {
+                if (timer.milliseconds() > 1700) {
                     modules.intake.setManualPower(1);
                     follower.setTarget(LAUNCH,2400);
                     setCases(CASES.LAUNCHSEC);
@@ -219,9 +246,9 @@ public class closeBlue extends OpMode {
                 break;
             case LAUNCHFIRST:
                 follower.overallmulti = 1;
-                if (localization.getX() > 30|| (modules.distance2.getDetection() < 150))
+                if (localization.getX() >25 )
                     modules.intake.setManualPower(1);
-                if (follower.reachedTarget(12)||follower.timeout()) {
+                if (follower.reachedTarget(10)||follower.timeout()) {
 
                     if (shooting == 1)
                         Launch();
@@ -236,7 +263,7 @@ public class closeBlue extends OpMode {
             case GOTOTHIRD:
                 follower.setTarget(LINIA3,3000);
                 modules.intake.setManualPower(-1);
-                if ((follower.reachedTarget(6) && follower.reachedHeading(Math.toRadians(10)))||follower.timeout()) {
+                if ((follower.reachedTarget(9) && follower.reachedHeading(Math.toRadians(10)))||follower.timeout()) {
 
                     setCases(CASES.COLLECTTHIRD);
                 }
@@ -248,15 +275,15 @@ public class closeBlue extends OpMode {
                 if (follower.reachedTarget(6)||follower.timeout()) {
 
                     follower.overallmulti = 1;
-                    follower.setTarget(LAUNCH,3500);
+                    follower.setTarget(LAUNCH2,3500);
 
                     setCases(CASES.LAUNCHTHIRD);
                 }
                 break;
             case LAUNCHTHIRD:
-                if (localization.getX() > 20|| (modules.distance2.getDetection() < 150))
+                if (localization.getX() > 15 || (modules.distance2.getDetection() < 150))
                     modules.intake.setManualPower(1);
-                if (follower.reachedTarget(12)|| follower.timeout()) {
+                if (follower.reachedTarget(10)|| follower.timeout()) {
 
                     if (shooting == 1)
                         Launch();
@@ -268,14 +295,17 @@ public class closeBlue extends OpMode {
                 }
                 break;
             case PARK:
-                follower.setTarget(PARK);
+//                follower.setTarget(PARK);
                 break;
 
         }
 
-   control.UpLaunch();
+//        if (localization.getY() < 125)
+        control.UpLaunch();
         follower.update();
-        odo.update();
+
+        if(localization.getY()>110)
+            modules.lTur.setangle(45);
         modules.update();
         Pose2D pos = odo.getPosition();
         String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
@@ -284,6 +314,8 @@ public class closeBlue extends OpMode {
         telemetry.addData("target", cases);
         telemetry.addData("target", shooting);
         telemetry.addData("target", shootingcase);
+        telemetry.addData("state", modules.spinner.getAuto());
+        telemetry.addData("state", modules.spinner.getState()   );
         telemetry.update();
     }
 
@@ -334,7 +366,7 @@ public class closeBlue extends OpMode {
                     break;
                 case 1:
 
-                    if (shootingtimer.milliseconds() > 230) {
+                    if (shootingtimer.milliseconds() > 150) {
                         modules.spinner.setAuto(220);
                         shootingcase++;
                         shootingtimer.reset();
@@ -342,8 +374,8 @@ public class closeBlue extends OpMode {
                     break;
                 case 2:
 
-                    if (shootingtimer.milliseconds() > 230) {
-                        modules.spinner.setAuto(380);
+                    if (shootingtimer.milliseconds() > 150) {
+                        modules.spinner.setAuto(400);
                         if (modules.spinner.getRealCurrentPosition() > 370)
                             shootingcase++;
 

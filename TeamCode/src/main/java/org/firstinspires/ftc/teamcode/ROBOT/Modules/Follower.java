@@ -33,7 +33,7 @@ public class Follower {
     double time = 0;
     boolean frontLeftMotorReversed, frontRightMotorReversed = true, backLeftMotorReversed, backRightMotorReversed = true;
     PIDController tpid = new PIDController(0, 0, 0), hpid = new PIDController(0, 0, 0);
-    public static double kp = 0.09, ki = 0.001, kd = 0.03,
+    public static double kp = 0.09, ki = 0.001, kd = 0.035,
             kph = 0.6, kih = 0, kdh = 0.11;
     Vector power = new Vector(0, 0);
     public static double velocityThreshold = 3.7;

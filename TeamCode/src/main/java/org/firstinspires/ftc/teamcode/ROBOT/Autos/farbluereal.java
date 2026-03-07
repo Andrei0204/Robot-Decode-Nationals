@@ -64,8 +64,8 @@ public class farbluereal extends OpMode {
     //    Pose GATE2 = new Pose(133, 52, Math.toRadians(45))
     //    Pose GATE2 = new (00135, 46.8, Math.toRadians(55));
     Pose PARK = new Pose(50, 17, Math.toRadians(180));
-    public static Pose COLLECT = new Pose(11, 10, Math.toRadians(190));
-    public static Pose COLLECT2 = new Pose(11, 15, Math.toRadians(200));
+    public static Pose COLLECT = new Pose(11, 20, Math.toRadians(165));
+    public static Pose COLLECT2 = new Pose(11, 10, Math.toRadians(195   ));
 
 
     @Override

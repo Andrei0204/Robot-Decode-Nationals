@@ -14,13 +14,13 @@ public class  servotestclaw extends LinearOpMode {
     Servo test;
     Servo test1;
 
-    public static double pos =0;
-    public static double pos2 =0;
+    public static double pos =0.5;
+    public static double pos2 =0.5;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        test =hardwareMap.get(Servo.class,"tur");
-        test1 =hardwareMap.get(Servo.class,"tur2");
+        test =hardwareMap.get(Servo.class,"T1");
+        test1 =hardwareMap.get(Servo.class,"T2");
 //        test.setPwmRange(new PwmControl.PwmRange(500,2500));
 
 //        test1.setPosition(0);
@@ -28,7 +28,7 @@ public class  servotestclaw extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) { // singurul while
             test.setPosition(pos);
-            test1.setPosition(pos);
+            test1.setPosition(pos2);
             telemetry.update();
         }
 

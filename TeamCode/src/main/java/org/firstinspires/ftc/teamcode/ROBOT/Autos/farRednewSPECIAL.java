@@ -66,8 +66,8 @@ public class farRednewSPECIAL extends OpMode {
     //    Pose GATE2 = new Pose(133, 52, Math.toRadians(45));
     //    Pose GATE2 = new Pose(135, 46.8, Math.toRadians(55));
     Pose PARK = new Pose(108, 17, Math.toRadians(0));
-    public static Pose COLLECT = new Pose(133, 10, Math.toRadians(-10));
-    public static Pose COLLECT2 = new Pose(133, 15, Math.toRadians(-20));
+    public static Pose COLLECT = new Pose(133, 20, Math.toRadians(15));
+    public static Pose COLLECT2 = new Pose(133, 10, Math.toRadians(-15));
 
     @Override
     public void init() {

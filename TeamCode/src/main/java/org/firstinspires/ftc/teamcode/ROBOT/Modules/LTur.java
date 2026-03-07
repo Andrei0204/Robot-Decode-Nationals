@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.ROBOT.Modules;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.pedropathing.control.PIDFCoefficients;
+import com.pedropathing.control.PIDFController;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -14,24 +16,28 @@ public class LTur implements IRobotModule, IStateBasedModule {
     public static double target = 0; //cm
     public static double startpos = 0;
     public static double auto = 0.3;
-    public static   double angle = 106;
-    public static   double lastangle = 0;
-    public static   double ticks = 0.00297;
-    public static   double offsetpos = 0.001;
     private static boolean ENABLED = true;
 
     public DcMotor turret = null;
-
-
-
-    public Servo T1  ;
-    public Servo    T2;
-    public static final double TICKS435 = 8192 ;    //test
-    public static final double TURTICKS = TICKS435 *4.5;    //test
-    public static double TICKSDEG = TURTICKS/360;
+    public Servo T1;
+    public Servo T2;
+    public static final double TICKS435 = 8192;    //test
+    public static final double TURTICKS = TICKS435 * 4.5;    //test
+    public static double TICKSDEG = TURTICKS / 360;
 
     public State state;
+    public static double Kp = 0.0085;           // Proportional gain
+    public static double Kd = 0.0008;          // Derivative gain
+    public static double Ki = 0.0001;          // Derivative gain
+    public static double Kf = 0;// Derivative gain
+    public static double Kpc = 0.01;           // Proportional gain
+    public static double Kdc = 0.0009;          // Derivative gain
+    public static double Kic = 0.000;          // Derivative gain
+    public static double Kfc = 0.02;          // Derivative gain
+    public static double swap = 4;          // Derivative gain
 
+
+    public PIDFController controller = new PIDFController(new PIDFCoefficients(Kp, Ki, Kd, Kf));
 
     public static double profileMaxVelocity = 15, profileAcceleration = 12, profileDeceleration = 10;
 
@@ -49,7 +55,7 @@ public class LTur implements IRobotModule, IStateBasedModule {
 //            T1 = new CoolServo(hardwareMap.get(ServoImplEx.class, "T1"),true,profileMaxVelocity,profileAcceleration,profileDeceleration, initialState.position);
 //            T2 = new CoolServo(hardwareMap.get(ServoImplEx.class, "T2"),true,profileMaxVelocity,profileAcceleration,profileDeceleration, initialState.position);
 
-            turret =  hardwareMap.get(DcMotor.class, "INTAKE");
+            turret = hardwareMap.get(DcMotor.class, "INTAKE");
             turret.setDirection(DcMotorSimple.Direction.REVERSE);
             T2.setDirection(Servo.Direction.REVERSE);
             T1.setDirection(Servo.Direction.REVERSE);
@@ -62,7 +68,6 @@ public class LTur implements IRobotModule, IStateBasedModule {
     }
 
 
-
     public double getTarget() {
         return target;
     }
@@ -72,12 +77,12 @@ public class LTur implements IRobotModule, IStateBasedModule {
     }
 
 
-
     public double getCurrentPosition() {
         return T1.getPosition();
     }
+
     public double getCurrentPositionenc() {
-        return turret.getCurrentPosition()/TICKSDEG;
+        return turret.getCurrentPosition() / TICKSDEG;
     }
 
 
@@ -90,44 +95,21 @@ public class LTur implements IRobotModule, IStateBasedModule {
         this.state = newState;
     }
 
-    public void setangle(double angle)
-    {
-        if(angle==angle ) {
-            angle = angle + this.angle;
-
-            double upmax = 0.85;
-            double downmax = 0;
-            double tickstodegree = ticks;
-            this.auto = angle * tickstodegree;
-            if (auto < downmax)
-                auto = downmax;
-            if (auto > upmax)
-                auto = upmax;
-            lastangle = auto;
+    public void setangle(double angle) {
+        if (angle == angle) {
+            auto = angle;
+            if (auto < -90)
+                auto = -90;
+            if (auto > 180)
+                auto = 180;
         }
-        else angle=0;
+
     }
 
-    public double updatelast(double angle ){
-        if(angle==angle ) {
-            angle = angle + this.angle;
-
-            double upmax = 0.85;
-            double downmax = 0;
-            double tickstodegree = ticks;
-            double last = angle * tickstodegree;
-            if (last < downmax)
-                last = downmax;
-            if (last > upmax)
-                last = upmax;
-          return   lastangle = last;
-        }
-        else
-            return 0;
-    }
-    public double getAuto(){
+    public double getAuto() {
         return auto;
     }
+
     @Override
     public void update() {
 
@@ -152,8 +134,38 @@ public class LTur implements IRobotModule, IStateBasedModule {
 
     @Override
     public void updateHardware() {
-        T1.setPosition(target+offsetpos);
-        T2.setPosition(target);
+
+
+        double currentAngle = turret.getCurrentPosition() / TICKSDEG; // in ticks
+        if (Math.abs(currentAngle - auto) > swap) {
+            controller.setP(Kp);
+            controller.setI(Ki);
+            controller.setF(Kf);
+            controller.updateFeedForwardInput(0);
+            controller.setD(Kd);
+        } else {
+            controller.setP(Kpc);
+            controller.setI(Kic);
+            controller.setF(Kfc);
+            controller.setD(Kdc);
+            controller.updateFeedForwardInput(Math.signum(auto - currentAngle));
+        }
+
+
+        controller.setTargetPosition(auto);
+        controller.updatePosition(currentAngle);
+        // ----- PD CONTROL -----
+        double power = controller.run();
+        // ----- CLAMP POWER -----
+        power = Math.max(-1.0, Math.min(1.0, power));
+        // ----- SEND TO SERVO -----
+        // Continuous servo expects 0-1 scale where 0.5 = stop
+        double servoCommand = 0.5 + power / 2.0;
+        T1.setPosition(servoCommand);
+        T2.setPosition(servoCommand);
+//
+//        T1.setPosition(target+offsetpos);
+//        T2.setPosition(target);
     }
 
     public enum State {

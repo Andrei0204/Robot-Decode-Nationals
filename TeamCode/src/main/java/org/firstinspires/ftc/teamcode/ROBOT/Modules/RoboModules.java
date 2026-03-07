@@ -23,7 +23,7 @@ public class RoboModules implements IRobotModule {
     public DistanceC distance2c= new DistanceC();
 //    DistanceC distance3c= new DistanceC();
     public Servo bec;
-
+    public Climb climb;
 
 
 
@@ -34,11 +34,12 @@ public class RoboModules implements IRobotModule {
     {
         bec= hardwareMap.get(Servo.class,"BEC");
         this.hardwareMap=hardwareMap;
-        lTur= new LTur(hardwareMap, LTur.State.START);
+        lTur= new LTur(hardwareMap, LTur.State.AUTO);
         spinner= new Spinner(hardwareMap, Spinner.State.START);
         intake= new Intake(hardwareMap, Intake.State.MANUAL);
         pivot= new Pivot(hardwareMap, Pivot.State.AUTO);
         launcher= new Launcher(hardwareMap, Launcher.State.TEST);
+        climb= new Climb(hardwareMap);
 //        color.sinit(hardwareMap,"C1");
 //        color2.sinit(hardwareMap,"C2");
 //        color3.sinit(hardwareMap,"C3");
@@ -56,7 +57,7 @@ public class RoboModules implements IRobotModule {
     }
     @Override
     public void update()  {
-
+        climb.update();
         lTur.update();
         spinner.update();
         intake.update();

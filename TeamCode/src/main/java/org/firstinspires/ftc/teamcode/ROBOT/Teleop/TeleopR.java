@@ -48,9 +48,10 @@ public class TeleopR extends OpMode {
     public int slow = 0;
     public int cooldown = 750;
     GoBildaPinpointDriver odo; // Declare OpMode member for the Odometry Compu
-
+    double oldTime = 0;
     @Override
     public void init() {
+
         List<LynxModule> allHubs = hardwareMap.getAll(LynxModule.class);
 
         for (LynxModule hub : allHubs) {
@@ -83,8 +84,8 @@ public class TeleopR extends OpMode {
         BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        control.red=1;
-        control.auto=0;
+        control.red = 1;
+        control.auto = 0;
         ShooterConstants.restartpos();
         modules.sensorstart();
 //        c1= hardwareMap.get(NormalizedColorSensor.class,"C1");
@@ -103,46 +104,53 @@ public class TeleopR extends OpMode {
 
     @Override
     public void start() {
-
-        modules.lTur.turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        modules.lTur.turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+//
+//        modules.lTur.turret.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+//        modules.lTur.turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
     }
 
     @Override
     public void loop() {
+        double newTime = getRuntime();
+        double loopTime = newTime-oldTime;
+        double frequency = 1/loopTime;
+        oldTime = newTime;
+
         Pose2D pos = odo.getPosition();
         String data = String.format(Locale.US, "{X: %.3f, Y: %.3f, H: %.3f}", pos.getX(DistanceUnit.INCH), pos.getY(DistanceUnit.INCH), pos.getHeading(AngleUnit.DEGREES));
 
-        if(gamepad2.a)
+        if (gamepad2.a)
             control.setSwm(1);
-        if(gamepad2.b)
+        if (gamepad2.b)
             control.setSwm(0);
-        if(gamepad2.dpadUpWasPressed())
-            ShooterConstants.SCORE_HEIGHT_FAR = ShooterConstants.SCORE_HEIGHT_FAR+0.5;
-        if(gamepad2.dpadDownWasPressed())
-            ShooterConstants.SCORE_HEIGHT_FAR = ShooterConstants.SCORE_HEIGHT_FAR-0.5;
-        if(gamepad2.dpadLeftWasPressed())
-            ShooterConstants.GOAL_POS_RED= new Pose(ShooterConstants.GOAL_POS_RED.getX()-1,ShooterConstants.GOAL_POS_RED.getY());
-        if(gamepad2.dpadRightWasPressed())
-            ShooterConstants.GOAL_POS_RED= new Pose(ShooterConstants.GOAL_POS_RED.getX()+1,ShooterConstants.GOAL_POS_RED.getY());
+        if (gamepad2.dpadUpWasPressed())
+            ShooterConstants.SCORE_HEIGHT_FAR = ShooterConstants.SCORE_HEIGHT_FAR + 0.5;
+        if (gamepad2.dpadDownWasPressed())
+            ShooterConstants.SCORE_HEIGHT_FAR = ShooterConstants.SCORE_HEIGHT_FAR - 0.5;
+        if (gamepad2.dpadLeftWasPressed())
+            ShooterConstants.GOAL_POS_RED = new Pose(ShooterConstants.GOAL_POS_RED.getX() - 1, ShooterConstants.GOAL_POS_RED.getY());
+        if (gamepad2.dpadRightWasPressed())
+            ShooterConstants.GOAL_POS_RED = new Pose(ShooterConstants.GOAL_POS_RED.getX() + 1, ShooterConstants.GOAL_POS_RED.getY());
+        if (gamepad2.leftBumperWasPressed())
+            ShooterConstants.SCORE_HEIGHT_CLOSE = ShooterConstants.SCORE_HEIGHT_CLOSE - 0.5;
+        if (gamepad2.rightBumperWasPressed())
+            ShooterConstants.SCORE_HEIGHT_CLOSE = ShooterConstants.SCORE_HEIGHT_CLOSE + 0.5;
         if (gamepad1.share) {
             odo.setPosition(new Pose2D(DistanceUnit.INCH, 7.7, 7.5, AngleUnit.DEGREES, 90));
         }
-        if(gamepad2.y)
-        {
+        if (gamepad2.y) {
             double h = pos.getHeading(AngleUnit.DEGREES);
             odo.setPosition(new Pose2D(DistanceUnit.INCH, 73, 22, AngleUnit.DEGREES, h));
             ShooterConstants.restartpos();
         }
-        if(gamepad2.x)
-        {
+        if (gamepad2.x) {
             double h = pos.getHeading(AngleUnit.DEGREES);
             odo.setPosition(new Pose2D(DistanceUnit.INCH, 73, 77, AngleUnit.DEGREES, h));
             ShooterConstants.restartpos();
         }
         odo.update();
-        if (gamepad1.left_stick_button) {
+        if (false) {
             mult = multv;
         } else
             mult = 1;
@@ -154,24 +162,15 @@ public class TeleopR extends OpMode {
         FR.setPower((y - x - rx) / denominator);
         BL.setPower((y - x + rx) / denominator);
         BR.setPower((y + x - rx) / denominator);
-
-
+//
+//
         modules.update();
         control.update();
 
-   telemetry.addData("Position", data);
+        telemetry.addData("Position", data);
+        telemetry.addData("TARGET", ShooterConstants.GOAL_POS_RED);
+        telemetry.addData("REV Hub Frequency: ", frequency); //prints the control system refresh rate
 
-
-        telemetry.addData("spinner", modules.launcher.Motorvel());
-        telemetry.addData("spinner", modules.launcher.getLaunchtoRpm(control.flywheelSpeed));
-
-        telemetry.addData("spinner", modules.spinner.getRealCurrentPosition());
-        telemetry.addData("spinner", modules.spinner.getRealCurrentPosition());
-        telemetry.addData("spinner2", modules.spinner.getTarget());
-        telemetry.addData("robotToGoalVector", control.robotToGoalVector);
-        telemetry.addData("sdas", modules.spinner.spinner.motor.motor.getCurrent(CurrentUnit.AMPS));
-        telemetry.addData("sdas", modules.lTur.lastangle);
-        telemetry.addData("sdas",modules.lTur.updatelast(control.anglenorm));
 
         telemetry.update();
     }

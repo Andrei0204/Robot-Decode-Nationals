@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 
 public class Launcher implements IStateBasedModule, IRobotModule {
 
-    public static double m = 11.2;
+    public static double m = 11.4;
     public static double n = 93;
     private static final Logger log = LoggerFactory.getLogger(Launcher.class);
     public static double TICKS_PER_REV = 28;

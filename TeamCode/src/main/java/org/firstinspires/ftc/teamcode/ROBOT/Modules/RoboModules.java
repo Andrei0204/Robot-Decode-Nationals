@@ -57,7 +57,7 @@ public class RoboModules implements IRobotModule {
     }
     @Override
     public void update()  {
-        climb.update();
+//        climb.update();
         lTur.update();
         spinner.update();
         intake.update();

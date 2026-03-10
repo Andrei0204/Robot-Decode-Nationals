@@ -32,16 +32,17 @@ public class RobotControl implements IRobotModule {
     public static Vector robotToGoalVector = new Vector();
     public double counter = 0;
     public static double shooting = 0;
+    public static double ishanging = 0;
     double stuckpos = 0;
     public static double compensation = 1;
     public static double red = 1;
     public double isstuck = 0;
     public double rec = 0.25;
-    public static double recf = 0.8;
+    public static double recf = 0.5;
     public static double recc = 0.5;
-    public static double counterf = 200;
+    public static double counterf = 240;
     public static double counterc = 140;
-    public static double magnitude = 110;
+    public static double magnitude = 85;
     public static double turerror = 0.00;
     public static double swmspeed = 20;
     public int shootingcase = 0;
@@ -78,6 +79,7 @@ public class RobotControl implements IRobotModule {
         this.odo = odo;
         swmtur = 1;
         auto = 0;
+        ishanging=0;
     }
 
     public void setSwm(int swm) {
@@ -107,7 +109,7 @@ public class RobotControl implements IRobotModule {
 //                if (!gamepad1.right_bumper) {
 //                waitforreverse = 1;
 //                reversetimer.reset();
-                    modules.intake.setManualPower(1);
+                modules.intake.setManualPower(1);
 //                }
                 gamepad1.rumble(1000);
             }
@@ -167,7 +169,7 @@ public class RobotControl implements IRobotModule {
         }
         if (shooting == 1) {
 
-            if (modules.spinner.spinner.motor.motor.getCurrent(CurrentUnit.AMPS) > 8 && isstuck != 1) {
+            if (modules.spinner.spinner.motor.motor.getCurrent(CurrentUnit.AMPS) > 8.5 && isstuck != 1) {
                 if (current.milliseconds() > 500) {
                     stuckpos = modules.spinner.getRealCurrentPosition();
                     isstucktimer.reset();
@@ -186,8 +188,8 @@ public class RobotControl implements IRobotModule {
 
                 switch (shootingcase) {
                     case 0:
-//                        if (odo.getPosY(DistanceUnit.INCH) < 52)
-//                            modules.climb.setPower(0.32, 550);
+                        if (odo.getPosY(DistanceUnit.INCH) < 52 && gamepad2.options )
+                            modules.climb.setPower(0.37, 550);
                         shootingcase++;
                         break;
 
@@ -213,10 +215,10 @@ public class RobotControl implements IRobotModule {
                         modules.spinner.setState(Spinner.State.START);
                         shooting = 0;
                         shootingcase = 0;
-                        modules.intake.setManualPower(0   );
-//                        if (odo.getPosY(DistanceUnit.INCH) < 52)
-//
-//                            modules.climb.setPower(0.55, 350);
+                        modules.intake.setManualPower(0);
+                        if (odo.getPosY(DistanceUnit.INCH) < 52)
+
+                            modules.climb.setPower(0.55, 350);
                         break;
                 }
             }
@@ -284,11 +286,10 @@ public class RobotControl implements IRobotModule {
 //    }
 
     public void UpLaunch() {
-        if( gamepad1.right_stick_button )
-        {
+        if (gamepad1.right_stick_button) {
             setSwm(0);
         }
-        if(gamepad1.left_stick_button)
+        if (gamepad1.left_stick_button)
             setSwm(1);
 
         if (red == 1) {
@@ -307,12 +308,16 @@ public class RobotControl implements IRobotModule {
         }
         double g = 32.174 * 12;
         double x = robotToGoalVector.getMagnitude() - ShooterConstants.PASS_THROUGH_POINT_RADIUS;
+        double yinch= odo.getPosY(DistanceUnit.INCH);
+        double xinch= odo.getPosX(DistanceUnit.INCH);
+        if(yinch <45 &&(xinch<35 || xinch>110) )
+            x= 145;
         double y = ShooterConstants.SCORE_HEIGHT_CLOSE;
         double a = ShooterConstants.SCORE_ANGLE_CLOSE;
         rec = recc;
         swm = swmon;
         counter = counterc;
-        if (robotToGoalVector.getMagnitude() > magnitude) {
+        if (odo.getPosY(DistanceUnit.INCH)<50) {
 //            swm = 0;
             counter = counterf;
             rec = recf;
@@ -381,11 +386,10 @@ public class RobotControl implements IRobotModule {
 
 
     public void UpLaunchnolauncher() {
-        if( gamepad1.right_stick_button )
-        {
+        if (gamepad1.right_stick_button) {
             setSwm(0);
         }
-        if(gamepad1.left_stick_button)
+        if (gamepad1.left_stick_button)
             setSwm(1);
 
         if (red == 1) {
@@ -409,7 +413,7 @@ public class RobotControl implements IRobotModule {
         rec = recc;
         swm = swmon;
         counter = counterc;
-        if (robotToGoalVector.getMagnitude() > magnitude) {
+        if (Math.abs(robotToGoalVector.getMagnitude()) > magnitude) {
 //            swm = 0;
             counter = counterf;
             rec = recf;
@@ -480,9 +484,32 @@ public class RobotControl implements IRobotModule {
     @Override
     public void update() {
 
-        UpIn();
-        UpSpin();
-        UpLaunch();
+        if(gamepad2.psWasPressed() && ishanging==0) {
+            ishanging = 1;
+            modules.climb.setPower(0.54,500);
+        }
+        else if( gamepad2.psWasPressed() && ishanging==1)
+            ishanging=0;
+        if(ishanging==0) {
+            UpIn();
+            UpSpin();
+            UpLaunch();
+        }
+        else
+        {
+            modules.launcher.setAuto(0);
+            modules.lTur.setangle(-90);
+            modules.intake.setManualPower(0);
+            modules.pivot.setangle(25);
+            if(gamepad2.a)
+            {
+                modules.climb.setPower(0,10000000);
+            }
+
+            if(gamepad2.b)
+                modules.climb.setPower(0.4,10000000);
+        }
+
     }
 
     public void Launch() {

@@ -48,21 +48,21 @@ public class closeBlue extends OpMode {
     CASES cases = CASES.GOTOPREANDLAUNCH;
     double auto = 0;
 
-   Pose LAUNCH = new Pose(50.5, 81.1, Math.toRadians(180));
-    Pose LAUNCH2 = new Pose(56.5, 100, Math.toRadians(135));
+   Pose LAUNCH = new Pose(58, 85, Math.toRadians(180));
+    Pose LAUNCH2 = new Pose(62, 100, Math.toRadians(135));
 
-   Pose LINIA1C = new Pose(6.5, 81.5, Math.toRadians(180));
-    Pose LINIA2 = new Pose(41, 52, Math.toRadians(180));
-    Pose LINIA2C = new Pose(4.5    , 52, Math.toRadians(180));
-    Pose LINIA3 = new Pose(41, 28, Math.toRadians(180));
-    Pose LINIA3C = new Pose(4.5, 28, Math.toRadians(180));
-    Pose GATE1 = new Pose(10.5, 67, Math.toRadians(180));
-    Pose GATE2 = new Pose(6, 47, Math.toRadians(150));
+   Pose LINIA1C = new Pose(9, 85, Math.toRadians(180));
+    Pose LINIA2 = new Pose(41, 53, Math.toRadians(180));
+    Pose LINIA2C = new Pose(6    , 53, Math.toRadians(180));
+    Pose LINIA3 = new Pose(44, 28, Math.toRadians(180));
+    Pose LINIA3C = new Pose(8, 28, Math.toRadians(180));
+    Pose GATE1 = new Pose(7, 54, Math.toRadians(160));
+    Pose GATE2 = new Pose(7, 55, Math.toRadians(160));
     //    Pose GATE1 = new Pose(132, 52.5, Math.toRadians(31));
-    Pose GATEOTW = new Pose(41.5, 54, Math.toRadians(180));
+    Pose GATEOTW = new Pose(41.5, 50, Math.toRadians(160));
     //    Pose GATE2 = new Pose(133, 52, Math.toRadians(45));
     //    Pose GATE2 = new Pose(135, 46.8, Math.toRadians(55));
-    Pose PARK = new Pose(33.5, 79.0, Math.toRadians(190));
+    Pose PARK = new Pose(33.5, 76.0, Math.toRadians(190));
 
 
 
@@ -105,7 +105,7 @@ public class closeBlue extends OpMode {
         modules.sensorstart();
         follower.setTarget(new Pose(0, 0, Math.toRadians(90)));
         control.red = 0;
-        odo.setPosition(new Pose2D(DistanceUnit.INCH, 33, 131.6, AngleUnit.DEGREES, 180));
+        odo.setPosition(new Pose2D(DistanceUnit.INCH, 33, 134.6, AngleUnit.DEGREES, -90));
 
     }
 
@@ -123,7 +123,7 @@ public class closeBlue extends OpMode {
 
     @Override
     public void start() {
-        odo.setPosition(new Pose2D(DistanceUnit.INCH, 33, 131.6, AngleUnit.DEGREES, 180));
+        odo.setPosition(new Pose2D(DistanceUnit.INCH, 33, 134.6, AngleUnit.DEGREES, -90));
         modules.spinner.setRunMode(Spinner.EXTRUNMODE.PID);
         modules.spinner.setState(Spinner.State.TEST);
         modules.intake.setState(Intake.State.MANUAL);
@@ -144,7 +144,7 @@ public class closeBlue extends OpMode {
         switch (cases) {
             case GOTOPREANDLAUNCH:
                 follower.setTarget(LAUNCH, 3000);
-                if (localization.getY() < 100) {
+                if (localization.getY() < 95) {
                     if (shooting == 1)
                         Launch();
                 } else shootingtimer.reset();
@@ -281,7 +281,7 @@ public class closeBlue extends OpMode {
                 }
                 break;
             case LAUNCHTHIRD:
-                if (localization.getX() > 15 || (modules.distance2.getDetection() < 150))
+                if (localization.getX() > 15 )
                     modules.intake.setManualPower(1);
                 if (follower.reachedTarget(10)|| follower.timeout()) {
 
@@ -366,7 +366,7 @@ public class closeBlue extends OpMode {
                     break;
                 case 1:
 
-                    if (shootingtimer.milliseconds() > 150) {
+                    if (shootingtimer.milliseconds() > 0) {
                         modules.spinner.setAuto(220);
                         shootingcase++;
                         shootingtimer.reset();
@@ -374,7 +374,7 @@ public class closeBlue extends OpMode {
                     break;
                 case 2:
 
-                    if (shootingtimer.milliseconds() > 150) {
+                    if (shootingtimer.milliseconds() > 0) {
                         modules.spinner.setAuto(400);
                         if (modules.spinner.getRealCurrentPosition() > 370)
                             shootingcase++;

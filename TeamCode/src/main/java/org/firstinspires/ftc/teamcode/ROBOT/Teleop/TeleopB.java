@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode.ROBOT.Teleop;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.arcrobotics.ftclib.controller.PIDController;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.field.Style;
 import com.pedropathing.geometry.Pose;
@@ -22,6 +23,7 @@ import org.firstinspires.ftc.teamcode.ROBOT.Modules.Drive.GoBildaPinpointDriver;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RoboModules;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.RobotControl;
 import org.firstinspires.ftc.teamcode.ROBOT.Modules.ShooterConstants;
+import org.firstinspires.ftc.teamcode.ROBOT.roboDrive.math.Angles;
 
 import java.util.List;
 import java.util.Locale;
@@ -156,7 +158,13 @@ public class TeleopB extends OpMode {
         double x = -gamepad1.left_stick_x * mult;
         double y = gamepad1.left_stick_y * mult;
         double rx = -gamepad1.right_stick_x * mult;
+        if(control.ishanging==1) {
+            double headingDiff = Angles.normalize((3*Math.PI)/4 - pos.getHeading(AngleUnit.RADIANS));
+            PIDController hpid = new PIDController(1, 0, 0.11);
+            rx = hpid.calculate(-headingDiff);
+        }
         double denominator = Math.max(Math.abs(y) + Math.abs(x) + Math.abs(rx), 1);
+
         FL.setPower((y + x + rx) / denominator);
         FR.setPower((y - x - rx) / denominator);
         BL.setPower((y - x + rx) / denominator);
@@ -170,6 +178,8 @@ public class TeleopB extends OpMode {
         telemetry.addData("TARGET", ShooterConstants.GOAL_POS_BLUE);
 
         telemetry.addData("REV Hub Frequency: ", frequency); //prints the control system refresh rate
+        telemetry.addData("vector", control.robotToGoalVector.toString()); //prints the control system refresh rate
+
 
 
         telemetry.update();

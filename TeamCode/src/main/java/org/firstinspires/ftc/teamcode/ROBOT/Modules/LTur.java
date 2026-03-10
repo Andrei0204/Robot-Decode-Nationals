@@ -16,6 +16,7 @@ public class LTur implements IRobotModule, IStateBasedModule {
     public static double target = 0; //cm
     public static double startpos = 0;
     public static double auto = 0.3;
+    public static double lastError = 0;
     private static boolean ENABLED = true;
 
     public DcMotor turret = null;
@@ -24,10 +25,10 @@ public class LTur implements IRobotModule, IStateBasedModule {
     public static final double TICKS435 = 8192;    //test
     public static final double TURTICKS = TICKS435 * 4.5;    //test
     public static double TICKSDEG = TURTICKS / 360;
-
+    public static  double deadband = 0.04;
     public State state;
-    public static double Kp = 0.0085;           // Proportional gain
-    public static double Kd = 0.0008;          // Derivative gain
+    public static double Kp = 0.0043;           // Proportional gain
+    public static double Kd = 0.010;          // Derivative gain
     public static double Ki = 0.0001;          // Derivative gain
     public static double Kf = 0;// Derivative gain
     public static double Kpc = 0.01;           // Proportional gain
@@ -137,35 +138,29 @@ public class LTur implements IRobotModule, IStateBasedModule {
 
 
         double currentAngle = turret.getCurrentPosition() / TICKSDEG; // in ticks
-        if (Math.abs(currentAngle - auto) > swap) {
-            controller.setP(Kp);
-            controller.setI(Ki);
-            controller.setF(Kf);
-            controller.updateFeedForwardInput(0);
-            controller.setD(Kd);
-        } else {
-            controller.setP(Kpc);
-            controller.setI(Kic);
-            controller.setF(Kfc);
-            controller.setD(Kdc);
-            controller.updateFeedForwardInput(Math.signum(auto - currentAngle));
+        double error = auto - currentAngle;
+
+        if (Math.abs(error) < 0.5) {
+            T1.setPosition(0.5);
+            T2.setPosition(0.5);
+            return;
         }
 
+        double power = Kp * error + Kd * (error - lastError);
 
-        controller.setTargetPosition(auto);
-        controller.updatePosition(currentAngle);
-        // ----- PD CONTROL -----
-        double power = controller.run();
-        // ----- CLAMP POWER -----
+
+
+        if (power > 0) power += deadband;
+        if (power < 0) power -= deadband;
+
         power = Math.max(-1.0, Math.min(1.0, power));
-        // ----- SEND TO SERVO -----
-        // Continuous servo expects 0-1 scale where 0.5 = stop
+
         double servoCommand = 0.5 + power / 2.0;
+
         T1.setPosition(servoCommand);
         T2.setPosition(servoCommand);
-//
-//        T1.setPosition(target+offsetpos);
-//        T2.setPosition(target);
+
+        lastError = error;
     }
 
     public enum State {

@@ -497,6 +497,9 @@ public class RobotControl implements IRobotModule {
         }
         else
         {
+
+            if(gamepad2.y)
+                ishanging=2;
             modules.launcher.setAuto(0);
             modules.lTur.setangle(-90);
             modules.intake.setManualPower(0);

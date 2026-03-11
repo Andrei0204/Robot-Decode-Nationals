@@ -9,7 +9,7 @@ import com.pedropathing.geometry.Pose;
 @Config
 public class ShooterConstants {
 
-    public static Pose GOAL_POS_RED = new Pose(126, 133);
+    public static Pose GOAL_POS_RED = new Pose(120, 133);
     public static Pose GOAL_POS_RED_AUTO = new Pose(132, 132);
     public static Pose GOAL_POS_BLUE = new Pose(24, 140);
     //    public static Pose GOAL_POS_BLUE =new Pose(3 ,132);
@@ -24,9 +24,9 @@ public class ShooterConstants {
         GOAL_POS_BLUE = new Pose(12, 133.5
         );
      SCORE_ANGLE_CLOSE = -0.3;//21 //radians
-        SCORE_ANGLE_FAR = -0.3  ; //radians
+        SCORE_ANGLE_FAR = -0.26  ; //radians
         GOAL_POS_RED = new Pose(131  , 132);
-        SCORE_HEIGHT_FAR = 34; //inches
+        SCORE_HEIGHT_FAR = 33; //inches
         SCORE_HEIGHT_CLOSE = 33
         ; //inches
         RobotControl.counterf=240;

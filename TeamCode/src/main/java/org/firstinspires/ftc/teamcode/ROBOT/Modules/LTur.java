@@ -27,7 +27,7 @@ public class LTur implements IRobotModule, IStateBasedModule {
     public static double TICKSDEG = TURTICKS / 360;
     public static  double deadband = 0.04;
     public State state;
-    public static double Kp = 0.0043;           // Proportional gain
+    public static double Kp = 0.0045    ;           // Proportional gain
     public static double Kd = 0.010;          // Derivative gain
     public static double Ki = 0.0001;          // Derivative gain
     public static double Kf = 0;// Derivative gain

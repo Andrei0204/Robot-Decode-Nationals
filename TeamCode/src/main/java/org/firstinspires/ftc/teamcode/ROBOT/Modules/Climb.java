@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class Climb {
     double power = 0, timer = 0;
     ElapsedTime time;
-    Servo C1, C2;
+ public    Servo C1, C2;
 
     public Climb(HardwareMap hardwareMap) {
         C1 = hardwareMap.get(Servo.class, "CLIMB1");
@@ -36,8 +36,8 @@ public class Climb {
                 timer = 0;
         }
         if (timer == 0 && C1.getPosition() != 0.53) {
-            C1.setPosition(0.53);
-            C2.setPosition(0.53);
+            C1.setPosition(0.56);
+            C2.setPosition(0.56);
         }
     }
 

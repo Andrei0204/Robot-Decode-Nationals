@@ -158,8 +158,8 @@ public class TeleopB extends OpMode {
         double x = -gamepad1.left_stick_x * mult;
         double y = gamepad1.left_stick_y * mult;
         double rx = -gamepad1.right_stick_x * mult;
-        if(control.ishanging==1) {
-            double headingDiff = Angles.normalize((3*Math.PI)/4 - pos.getHeading(AngleUnit.RADIANS));
+        if(control.ishanging==2 && modules.climb.C1.getPosition()>0.47) {
+            double headingDiff = Angles.normalize((4*Math.PI)/4 - pos.getHeading(AngleUnit.RADIANS));
             PIDController hpid = new PIDController(1, 0, 0.11);
             rx = hpid.calculate(-headingDiff);
         }
